@@ -643,7 +643,7 @@ app.get('/api/curriculum', (req, res) => {
 // ----------------------------------------------------
 // Catch-all: Serve React frontend for any non-API route
 // ----------------------------------------------------
-app.get('*', (req, res) => {
+app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
