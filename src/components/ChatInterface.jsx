@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, BookOpen, RefreshCw, Settings, Key, Volume2, Mic } from 'lucide-react';
+import { Send, Sparkles, BookOpen, RefreshCw, Settings, Key, Volume2, Mic, Paperclip, AudioLines, PenTool, Globe, Image } from 'lucide-react';
 
 export default function ChatInterface({ activeVersion, setActiveVersion, onSendMessage, isProcessing, chatHistory, setChatHistory, chatMode, setChatMode }) {
   const [inputValue, setInputValue] = useState('');
@@ -251,19 +251,41 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
       {/* Messages Area */}
       <div className="chat-messages-area">
         {chatHistory.length === 0 && (
-          <div className="welcome-box">
-            <div className="welcome-icon-wrapper">
-              <BookOpen size={20} />
+          <div className="welcome-box" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', textAlign: 'center', maxWidth: '600px', margin: '40px auto 0 auto' }}>
+            <h2 className="welcome-title" style={{ fontSize: '22px', fontWeight: '500', color: 'white', marginBottom: '8px' }}>
+              What's on the agenda today?
+            </h2>
+            
+            {/* Quick Actions List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', maxWidth: '360px', margin: '8px 0' }}>
+              <button 
+                type="button"
+                onClick={() => setInputValue("Generate a visual comparison chart of ")}
+                className="suggestion-pill"
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', textAlign: 'left', width: '100%', fontSize: '11px', color: 'var(--text-secondary)' }}
+              >
+                <Image size={13} style={{ color: 'var(--text-muted)' }} /> Create an image
+              </button>
+              <button 
+                type="button"
+                onClick={() => setInputValue("Write an essay summarizing ")}
+                className="suggestion-pill"
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', textAlign: 'left', width: '100%', fontSize: '11px', color: 'var(--text-secondary)' }}
+              >
+                <PenTool size={13} style={{ color: 'var(--text-muted)' }} /> Write or edit
+              </button>
+              <button 
+                type="button"
+                onClick={() => setInputValue("Search the vector database for ")}
+                className="suggestion-pill"
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', textAlign: 'left', width: '100%', fontSize: '11px', color: 'var(--text-secondary)' }}
+              >
+                <Globe size={13} style={{ color: 'var(--text-muted)' }} /> Search the web
+              </button>
             </div>
-            <div>
-              <h3 className="welcome-title">Start your Study Session</h3>
-              <p className="welcome-desc">
-                {chatMode === 'gemini' 
-                  ? 'Chat with the live Google Gemini model. Enter syllabus queries or request multiple-choice quizzes!'
-                  : 'Ask a question about the curriculum, request a quiz, or ask for clarifications.'}
-              </p>
-            </div>
-            <div className="welcome-suggestions">
+
+            {/* Quick Suggestions Pilled Grid */}
+            <div className="welcome-suggestions" style={{ marginTop: '8px' }}>
               {[
                 "Tell me about Photosynthesis process",
                 "Explain Newton's Second Law of Motion",
@@ -333,14 +355,24 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
       {/* Input Form */}
       <form onSubmit={handleSubmit} className="chat-input-container">
         <div className="chat-input-wrapper">
+          <button
+            type="button"
+            className="drawer-close-btn"
+            style={{ padding: '6px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Attach files (Mock)"
+          >
+            <Paperclip size={14} />
+          </button>
+          
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={chatMode === 'gemini' ? "Chat with Gemini AI..." : "Ask your question here..."}
+            placeholder="Ask anything..."
             disabled={isProcessing}
             className="chat-input"
           />
+
           <button
             type="button"
             onClick={handleVoiceInput}
@@ -350,6 +382,16 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
           >
             <Mic size={12} />
           </button>
+
+          <button
+            type="button"
+            className="drawer-close-btn"
+            style={{ padding: '6px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Voice Mode (Mock)"
+          >
+            <AudioLines size={14} />
+          </button>
+
           <button
             type="submit"
             disabled={!inputValue.trim() || isProcessing}
