@@ -32,6 +32,7 @@ export default function App() {
   const [currentSessionId, setCurrentSessionId] = useState('student-session-001');
   const [sessionsList, setSessionsList] = useState([]);
   const [isThreadsExpanded, setIsThreadsExpanded] = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
   const loadSessionHistory = (sessId) => {
@@ -251,130 +252,194 @@ Could not connect to backend server or webhook endpoint.
   return (
     <div className="app-container">
       {/* Sidebar Navigation */}
-      <div className="sidebar glass-panel">
-        <div className="sidebar-top">
-          {/* Logo Brand */}
-          <div className="brand" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div className="brand-logo">
-                <Sparkles size={18} />
-              </div>
-              <div className="brand-info">
-                <h1 className="gradient-text">AI study</h1>
-                <span>Study Assistant UI</span>
-              </div>
+      <div className={`sidebar glass-panel ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        {isSidebarCollapsed ? (
+          <div className="sidebar-collapsed-content" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', height: '100%', width: '100%' }}>
+            {/* Gemini Sparkle Logo */}
+            <div className="brand-logo" style={{ marginTop: '8px' }}>
+              <Sparkles size={18} />
             </div>
-            {/* Header Icons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-              <button className="thread-action-btn" title="Search"><Search size={14} /></button>
-              <button className="thread-action-btn" title="Toggle Sidebar"><PanelLeftClose size={14} /></button>
-            </div>
-          </div>
+            
+            {/* Sidebar Toggle Expand button */}
+            <button 
+              onClick={() => setIsSidebarCollapsed(false)}
+              className="thread-action-btn" 
+              style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)' }}
+              title="Expand Sidebar"
+            >
+              <PanelLeftClose size={16} style={{ transform: 'rotate(180deg)' }} />
+            </button>
 
-          {/* Navigation Items */}
-          <div className="nav-group">
-            <button
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', width: '100%', margin: '4px 0' }}></div>
+
+            {/* Quick Icons */}
+            <button 
               onClick={handleCreateNewThread}
-              className="nav-btn"
-              style={{ 
-                background: 'rgba(168, 85, 247, 0.05)', 
-                border: '1px solid rgba(168, 85, 247, 0.12)',
-                color: 'var(--accent-purple-light)',
-                fontWeight: '700',
-                marginBottom: '8px'
-              }}
+              className="thread-action-btn" 
+              style={{ padding: '8px', background: 'rgba(168, 85, 247, 0.05)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="New chat"
             >
-              <SquarePen size={16} /> New chat
+              <SquarePen size={16} style={{ color: 'var(--accent-purple-light)' }} />
             </button>
 
-            <button
+            <button 
               onClick={() => setActiveTab('visualizer')}
-              className={`nav-btn ${activeTab === 'visualizer' ? 'nav-btn-active' : ''}`}
+              className={`thread-action-btn ${activeTab === 'visualizer' ? 'active-icon-btn' : ''}`}
+              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Playbook Visualizer"
             >
-              <Cpu size={16} /> Playbook Visualizer
+              <Cpu size={16} />
             </button>
-            <button
+
+            <button 
               onClick={() => setActiveTab('logs')}
-              className={`nav-btn ${activeTab === 'logs' ? 'nav-btn-active' : ''}`}
+              className={`thread-action-btn ${activeTab === 'logs' ? 'active-icon-btn' : ''}`}
+              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Run Executions"
             >
-              <BarChart2 size={16} /> Run Executions
+              <BarChart2 size={16} />
             </button>
+            
+            <div style={{ flexGrow: 1 }}></div>
 
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '8px 0' }}></div>
-
-            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
-              <Image size={14} /> Images
-            </button>
-            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
-              <BookOpen size={14} /> Library
-            </button>
-            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
-              <Globe size={14} /> Plugins
-            </button>
-            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
-              <Folder size={14} /> Projects
-            </button>
-            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
-              <Code size={14} /> Codex
-            </button>
-            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
-              <MoreHorizontal size={14} /> More
+            {/* Help / Settings */}
+            <button className="thread-action-btn" title="More options" style={{ opacity: 0.6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MoreHorizontal size={16} />
             </button>
           </div>
-
-          {/* Active Chats Threads Section */}
-          <div className="threads-section">
-            <div 
-              onClick={() => setIsThreadsExpanded(!isThreadsExpanded)}
-              className="threads-header"
-              style={{ cursor: 'pointer', userSelect: 'none' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ 
-                  transition: 'transform 0.2s', 
-                  transform: isThreadsExpanded ? 'rotate(90deg)' : 'rotate(0deg)', 
-                  fontSize: '8px', 
-                  display: 'inline-block' 
-                }}>▶</span>
-                <span>Active Threads</span>
+        ) : (
+          <div className="sidebar-top">
+            {/* Logo Brand */}
+            <div className="brand" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="brand-logo">
+                  <Sparkles size={18} />
+                </div>
+                <div className="brand-info">
+                  <h1 className="gradient-text">AI study</h1>
+                  <span>Study Assistant UI</span>
+                </div>
               </div>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCreateNewThread();
-                }} 
-                className="new-thread-link"
-                title="Create new thread"
+              {/* Header Icons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
+                <button className="thread-action-btn" title="Search"><Search size={14} /></button>
+                <button 
+                  onClick={() => setIsSidebarCollapsed(true)}
+                  className="thread-action-btn" 
+                  title="Collapse Sidebar"
+                >
+                  <PanelLeftClose size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Navigation Items */}
+            <div className="nav-group">
+              <button
+                onClick={handleCreateNewThread}
+                className="nav-btn"
+                style={{ 
+                  background: 'rgba(168, 85, 247, 0.05)', 
+                  border: '1px solid rgba(168, 85, 247, 0.12)',
+                  color: 'var(--accent-purple-light)',
+                  fontWeight: '700',
+                  marginBottom: '8px'
+                }}
               >
-                <Plus size={10} /> New
+                <SquarePen size={16} /> New chat
+              </button>
+
+              <button
+                onClick={() => setActiveTab('visualizer')}
+                className={`nav-btn ${activeTab === 'visualizer' ? 'nav-btn-active' : ''}`}
+              >
+                <Cpu size={16} /> Playbook Visualizer
+              </button>
+              <button
+                onClick={() => setActiveTab('logs')}
+                className={`nav-btn ${activeTab === 'logs' ? 'nav-btn-active' : ''}`}
+              >
+                <BarChart2 size={16} /> Run Executions
+              </button>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '8px 0' }}></div>
+
+              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+                <Image size={14} /> Images
+              </button>
+              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+                <BookOpen size={14} /> Library
+              </button>
+              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+                <Globe size={14} /> Plugins
+              </button>
+              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+                <Folder size={14} /> Projects
+              </button>
+              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+                <Code size={14} /> Codex
+              </button>
+              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+                <MoreHorizontal size={14} /> More
               </button>
             </div>
-            {isThreadsExpanded && (
-              <div className="threads-list">
-                {sessionsList.map(sessionItem => (
-                  <ThreadItem 
-                    key={sessionItem.sessionId}
-                    session={sessionItem}
-                    isActive={sessionItem.sessionId === currentSessionId}
-                    onSelect={() => {
-                      setCurrentSessionId(sessionItem.sessionId);
-                      loadSessionHistory(sessionItem.sessionId);
-                    }}
-                    onRename={(newName) => handleRenameThread(sessionItem.sessionId, newName)}
-                    onDelete={handleDeleteThread}
-                  />
-                ))}
+
+            {/* Active Chats Threads Section */}
+            <div className="threads-section">
+              <div 
+                onClick={() => setIsThreadsExpanded(!isThreadsExpanded)}
+                className="threads-header"
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ 
+                    transition: 'transform 0.2s', 
+                    transform: isThreadsExpanded ? 'rotate(90deg)' : 'rotate(0deg)', 
+                    fontSize: '8px', 
+                    display: 'inline-block' 
+                  }}>▶</span>
+                  <span>Active Threads</span>
+                </div>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCreateNewThread();
+                  }} 
+                  className="new-thread-link"
+                  title="Create new thread"
+                >
+                  <Plus size={10} /> New
+                </button>
               </div>
-            )}
+              {isThreadsExpanded && (
+                <div className="threads-list">
+                  {sessionsList.map(sessionItem => (
+                    <ThreadItem 
+                      key={sessionItem.sessionId}
+                      session={sessionItem}
+                      isActive={sessionItem.sessionId === currentSessionId}
+                      onSelect={() => {
+                        setCurrentSessionId(sessionItem.sessionId);
+                        loadSessionHistory(sessionItem.sessionId);
+                      }}
+                      onRename={(newName) => handleRenameThread(sessionItem.sessionId, newName)}
+                      onDelete={handleDeleteThread}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Footer details */}
-        <div className="sidebar-footer">
-          <div>OS: WINDOWS</div>
-          <div>PROJECT: STUDY-ASSISTANT</div>
-          <div style={{ color: 'var(--accent-purple-light)' }}>TARGET: 3 VERSIONS</div>
-        </div>
+        {!isSidebarCollapsed && (
+          <div className="sidebar-footer">
+            <div>OS: WINDOWS</div>
+            <div>PROJECT: STUDY-ASSISTANT</div>
+            <div style={{ color: 'var(--accent-purple-light)' }}>TARGET: 3 VERSIONS</div>
+          </div>
+        )}
       </div>
 
       {/* Main Panel Stage */}
