@@ -31,6 +31,7 @@ export default function App() {
 
   const [currentSessionId, setCurrentSessionId] = useState('student-session-001');
   const [sessionsList, setSessionsList] = useState([]);
+  const [isThreadsExpanded, setIsThreadsExpanded] = useState(true);
   const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
   const loadSessionHistory = (sessId) => {
@@ -281,31 +282,48 @@ Could not connect to backend server or webhook endpoint.
 
           {/* Active Chats Threads Section */}
           <div className="threads-section">
-            <div className="threads-header">
-              <span>Active Threads</span>
+            <div 
+              onClick={() => setIsThreadsExpanded(!isThreadsExpanded)}
+              className="threads-header"
+              style={{ cursor: 'pointer', userSelect: 'none' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ 
+                  transition: 'transform 0.2s', 
+                  transform: isThreadsExpanded ? 'rotate(90deg)' : 'rotate(0deg)', 
+                  fontSize: '8px', 
+                  display: 'inline-block' 
+                }}>▶</span>
+                <span>Active Threads</span>
+              </div>
               <button 
-                onClick={handleCreateNewThread} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCreateNewThread();
+                }} 
                 className="new-thread-link"
                 title="Create new thread"
               >
-                <Plus size={10} /> New Thread
+                <Plus size={10} /> New
               </button>
             </div>
-            <div className="threads-list">
-              {sessionsList.map(sessionItem => (
-                <ThreadItem 
-                  key={sessionItem.sessionId}
-                  session={sessionItem}
-                  isActive={sessionItem.sessionId === currentSessionId}
-                  onSelect={() => {
-                    setCurrentSessionId(sessionItem.sessionId);
-                    loadSessionHistory(sessionItem.sessionId);
-                  }}
-                  onRename={(newName) => handleRenameThread(sessionItem.sessionId, newName)}
-                  onDelete={handleDeleteThread}
-                />
-              ))}
-            </div>
+            {isThreadsExpanded && (
+              <div className="threads-list">
+                {sessionsList.map(sessionItem => (
+                  <ThreadItem 
+                    key={sessionItem.sessionId}
+                    session={sessionItem}
+                    isActive={sessionItem.sessionId === currentSessionId}
+                    onSelect={() => {
+                      setCurrentSessionId(sessionItem.sessionId);
+                      loadSessionHistory(sessionItem.sessionId);
+                    }}
+                    onRename={(newName) => handleRenameThread(sessionItem.sessionId, newName)}
+                    onDelete={handleDeleteThread}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
