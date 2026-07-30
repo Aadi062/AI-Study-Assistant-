@@ -110,9 +110,20 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
     onSendMessage(userMessage);
   };
 
+  const renderInlineMarkdown = (text) => {
+    if (!text) return '';
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index} style={{ fontWeight: '700', color: 'white' }}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   const renderMessageContent = (msg) => {
     if (msg.sender === 'student') {
-      return <p style={{ fontSize: '12px', lineHeight: '1.5' }}>{msg.text}</p>;
+      return <p style={{ fontSize: '12px', lineHeight: '1.5' }}>{renderInlineMarkdown(msg.text)}</p>;
     }
 
     const isQuiz = msg.text.includes('### Practice Quiz') || msg.text.includes('Q1:') || msg.text.includes('Question 1:');
@@ -131,21 +142,19 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
       <div className="markdown-content" style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {msg.text.split('\n\n').map((para, i) => {
           if (para.startsWith('### ')) {
-            return <h3 key={i} style={{ fontSize: '13px', fontWeight: '700', color: 'var(--accent-purple-light)', marginTop: '4px' }}>{para.replace('### ', '')}</h3>;
+            return <h3 key={i} style={{ fontSize: '13px', fontWeight: '700', color: 'var(--accent-purple-light)', marginTop: '4px' }}>{renderInlineMarkdown(para.replace('### ', ''))}</h3>;
           }
-          if (para.startsWith('**') && para.endsWith('**')) {
-            return <p key={i} style={{ fontWeight: '700', color: 'white' }}>{para.replaceAll('**', '')}</p>;
-          }
-          if (para.startsWith('- ')) {
+          if (para.startsWith('- ') || para.startsWith('* ')) {
             return (
               <ul key={i} style={{ paddingLeft: '16px', listStyleType: 'disc', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {para.split('\n').map((li, j) => (
-                  <li key={j}>{li.replace('- ', '')}</li>
-                ))}
+                {para.split('\n').map((li, j) => {
+                  const cleanedLi = li.replace(/^[-*]\s+/, '');
+                  return <li key={j}>{renderInlineMarkdown(cleanedLi)}</li>;
+                })}
               </ul>
             );
           }
-          return <p key={i}>{para}</p>;
+          return <p key={i}>{renderInlineMarkdown(para)}</p>;
         })}
       </div>
     );

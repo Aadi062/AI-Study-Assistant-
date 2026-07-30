@@ -27,7 +27,6 @@ function stripMarkdown(text) {
   return text
     .replace(/^###\s+/gm, '')        // remove headers
     .replace(/\*\*(.*?)\*\*/g, '$1') // remove bold
-    .replace(/\*(.*?)\*/g, '$1')     // remove italics/single stars
     .replace(/^\s*[-*+]\s+/gm, '')   // remove bullets
     .replace(/\[(.*?)\]\(.*?\)/g, '$1') // remove links
     .replace(/`([^`]+)`/g, '$1');    // remove inline code
@@ -78,7 +77,8 @@ app.post('/api/chat', async (req, res) => {
   if (isPlainTextRequest) {
     const cleanQuery = message
       .replace(/\b(in\s*|)plain\s*text|no\s*markdown|remove\s*markdown|strip\s*markdown|without\s*markdown|give\s*it\s*(to\s*me\s*)?in\s*plain\s*text|just\s*text\b/gi, '')
-      .replace(/\b(please|give\s*me|show\s*me|format|as|in|to|me|the|on|about)\b/gi, '')
+      .replace(/\b(please|give\s*me|show\s*me|format\s*this|format|as|in|to|me|the|on|about|given|this|change|convert|show|display|add|render|output)\b/gi, '')
+      .replace(/[()]/g, '')
       .trim();
       
     if (cleanQuery.length < 3) {
@@ -453,39 +453,6 @@ Water is a polar covalent compound consisting of two hydrogen atoms bonded to a 
 - **Universal Solvent**: Capable of dissolving a wide variety of polar and ionic substances.
 
 Would you like a chemistry quiz on compounds?`;
-    } else if (queryLower.includes('chatgpt') || queryLower.includes('gemini') || queryLower.includes('comparison') || queryLower.includes('features and functions')) {
-      assistantReply = `### ChatGPT vs Google Gemini: Features & Functions
-
-Here is a comprehensive breakdown of the features and functions of ChatGPT and Google Gemini:
-
-#### ChatGPT – Features & Functions
-- **Natural language understanding**: Answers questions
-- **Text generation**: Writes essays, emails, reports
-- **Coding assistance**: Generates and debugs code
-- **Image understanding**: Analyzes uploaded images
-- **Voice conversation**: Supports voice chats
-- **Web browsing (when enabled)**: Finds up-to-date information
-- **File analysis**: Summarizes PDFs, Word, Excel, etc.
-- **Memory (optional)**: Remembers user preferences across chats
-- **Multilingual support**: Translates multiple languages
-- **AI reasoning**: Solves math, logic, and programming problems
-
-#### Google Gemini – Features & Functions
-- **Multimodal AI**: Understands text, images, audio, and video
-- **Google Search integration**: Provides current information
-- **Google Workspace integration**: Works with Gmail, Docs, Sheets, and Drive
-- **Coding assistance**: Generates and explains code
-- **Image analysis**: Describes and analyzes images
-- **File analysis**: Summarizes documents and PDFs
-- **Voice interaction**: Supports voice conversations
-- **Translation**: Translates multiple languages
-- **Long-context understanding**: Processes long documents
-- **AI assistance**: Helps with writing, research, brainstorming
-- **Support learning and productivity**: Helps with learning modules and study productivity
-
-#### Key Difference
-- **ChatGPT**: Best for writing, coding, reasoning, and AI conversations.
-- **Gemini**: Best for users who rely on Google services (Gmail, Docs, Drive, Search) and want AI integrated with that ecosystem.`;
     } else if (queryLower.includes('quiz') || queryLower.includes('test') || queryLower.includes('question')) {
       const topicRaw = message.replace(/give me a|generate a|quiz on|test on|questions on|practice/gi, '').trim();
       const topic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Cell Biology';
