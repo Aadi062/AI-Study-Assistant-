@@ -33,6 +33,34 @@
   --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
+/* Light Theme overrides */
+body.light-theme {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
+  --bg-glass: rgba(241, 245, 249, 0.85);
+  --bg-glass-hover: rgba(226, 232, 240, 0.95);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-hover: rgba(168, 85, 247, 0.4);
+}
+
+/* Amethyst Theme overrides */
+body.amethyst-theme {
+  --bg-primary: #120024;
+  --bg-secondary: #1a0033;
+  --bg-tertiary: #2d0054;
+  --bg-glass: rgba(26, 0, 51, 0.8);
+  --bg-glass-hover: rgba(45, 0, 84, 0.9);
+  --border-color: rgba(236, 72, 153, 0.15);
+  --text-primary: #fdf4ff;
+  --text-secondary: #f0abfc;
+  --text-muted: #c084fc;
+  --border-hover: rgba(236, 72, 153, 0.45);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

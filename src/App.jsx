@@ -35,7 +35,20 @@ export default function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [installedPlugins, setInstalledPlugins] = useState([]);
+  const [activeModal, setActiveModal] = useState(null);
+  const [theme, setTheme] = useState(localStorage.getItem('app_theme') || 'dark');
+  const [memories, setMemories] = useState(JSON.parse(localStorage.getItem('ai_memories') || '[]'));
+  const [newMemory, setNewMemory] = useState('');
+  const [customInstructions, setCustomInstructions] = useState(localStorage.getItem('custom_instructions') || '');
   const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
+
+  React.useEffect(() => {
+    document.body.className = '';
+    if (theme !== 'dark') {
+      document.body.classList.add(theme + '-theme');
+    }
+    localStorage.setItem('app_theme', theme);
+  }, [theme]);
 
   React.useEffect(() => {
     const handleDocumentClick = () => {
@@ -74,32 +87,43 @@ export default function App() {
           color: 'var(--text-secondary)'
         }}
       >
-        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+        <button onClick={() => { setActiveModal('activity'); setIsMoreMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
           <History size={14} style={{ color: 'var(--text-muted)' }} /> Activity
         </button>
-        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+        <button onClick={() => { setActiveModal('personal_intel'); setIsMoreMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
           <Sparkles size={14} style={{ color: 'var(--text-muted)' }} /> Personal Intelligence
         </button>
-        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+        <button onClick={() => { setActiveModal('import_memory'); setIsMoreMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
           <FileUp size={14} style={{ color: 'var(--text-muted)' }} /> Import memory
         </button>
-        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
-          <Sun size={14} style={{ color: 'var(--text-muted)' }} /> Theme
+        <button 
+          onClick={() => { 
+            const themes = ['dark', 'light', 'amethyst'];
+            const nextTheme = themes[(themes.indexOf(theme) + 1) % themes.length];
+            setTheme(nextTheme);
+          }} 
+          className="popover-item" 
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', fontSize: '12px' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Sun size={14} style={{ color: 'var(--text-muted)' }} /> Theme
+          </div>
+          <span style={{ fontSize: '9px', background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '8px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{theme}</span>
         </button>
-        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+        <button onClick={() => { setActiveModal('upgrade'); setIsMoreMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
           <Zap size={14} style={{ color: 'var(--accent-purple-light)' }} /> Upgrade to AI Ultra
         </button>
-        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+        <button onClick={() => { setActiveModal('help'); setIsMoreMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
           <HelpCircle size={14} style={{ color: 'var(--text-muted)' }} /> Help
         </button>
         
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '6px 0' }}></div>
         
         <div style={{ padding: '6px 16px', fontSize: '10px', color: 'var(--text-muted)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent-purple-light)' }}>
-            <span style={{ fontSize: '12px' }}>•</span> Vodlemol Cacora, Goa, India
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent-purple-light)', fontWeight: 'bold' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-purple-light)', display: 'inline-block' }}></span> Vodlemol Cacora, Goa, India
           </div>
-          <div>From your IP address</div>
+          <div style={{ marginTop: '2px' }}>From your IP address</div>
         </div>
       </div>
     );
@@ -317,6 +341,207 @@ Could not connect to backend server or webhook endpoint.
     } finally {
       setIsIngesting(false);
     }
+  };
+
+  const renderSettingsModals = () => {
+    if (!activeModal) return null;
+
+    return (
+      <div 
+        onClick={() => setActiveModal(null)} 
+        style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          width: '100vw', 
+          height: '100vh', 
+          background: 'rgba(0,0,0,0.6)', 
+          backdropFilter: 'blur(4px)', 
+          zIndex: 10000, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center'
+        }}
+      >
+        <div 
+          onClick={(e) => e.stopPropagation()} 
+          className="glass-panel animate-fade-in" 
+          style={{ 
+            width: '100%', 
+            maxWidth: activeModal === 'upgrade' ? '500px' : '450px', 
+            borderRadius: '16px', 
+            border: '1px solid rgba(255,255,255,0.08)', 
+            background: 'rgba(15, 18, 36, 0.98)', 
+            boxShadow: '0 20px 50px rgba(0,0,0,0.7)', 
+            padding: '24px', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '16px' 
+          }}
+        >
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {activeModal === 'activity' && <History size={16} style={{ color: 'var(--accent-purple-light)' }} />}
+              {activeModal === 'personal_intel' && <Sparkles size={16} style={{ color: 'var(--accent-purple-light)' }} />}
+              {activeModal === 'import_memory' && <FileUp size={16} style={{ color: 'var(--accent-purple-light)' }} />}
+              {activeModal === 'upgrade' && <Zap size={16} style={{ color: 'var(--accent-purple-light)' }} />}
+              {activeModal === 'help' && <HelpCircle size={16} style={{ color: 'var(--accent-purple-light)' }} />}
+              <span style={{ fontSize: '14px', fontWeight: '800', color: 'white', textTransform: 'capitalize' }}>
+                {activeModal === 'personal_intel' ? 'Personal Intelligence Settings' : activeModal.replace('_', ' ')}
+              </span>
+            </div>
+            <button 
+              onClick={() => setActiveModal(null)} 
+              style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', margin: '2px 0' }}></div>
+
+          {/* Modal Body */}
+
+          {/* 1. Activity Modal */}
+          {activeModal === 'activity' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Track recent workspace edits, executions, and database changes.</p>
+              {[
+                { time: 'Just Now', text: 'Opened active Projects & RAG Workspace' },
+                { time: '3 mins ago', text: 'Linked images style CARICATURE prompter' },
+                { time: '10 mins ago', text: 'Created new study chat session' },
+                { time: 'Yesterday', text: 'Completed n8n RAG file upload indexing' },
+                { time: '2 days ago', text: 'Successfully pushed master commit to GitHub' }
+              ].map((act, idx) => (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.02)', fontSize: '11px' }}>
+                  <span style={{ color: 'white' }}>{act.text}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>{act.time}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 2. Personal Intelligence Modal */}
+          {activeModal === 'personal_intel' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Customize default background rules for student chats. These instructions guide assistant logic.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '10px', fontWeight: '700', color: 'white' }}>Custom System Rules (Syllabus/Context)</span>
+                <textarea 
+                  value={customInstructions}
+                  onChange={(e) => {
+                    setCustomInstructions(e.target.value);
+                    localStorage.setItem('custom_instructions', e.target.value);
+                  }}
+                  placeholder="Example: Respond using standard computer network definitions. Prefer simple analogies..."
+                  rows={6}
+                  style={{ width: '100%', padding: '10px', fontSize: '11px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', fontFamily: 'inherit', resize: 'vertical' }}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.01)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.02)' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: 'white', fontWeight: '600' }}>Labs Personal Intelligence</div>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Leverage active memory across all threads</div>
+                </div>
+                <input type="checkbox" defaultChecked style={{ cursor: 'pointer' }} />
+              </div>
+            </div>
+          )}
+
+          {/* 3. Import Memory Modal */}
+          {activeModal === 'import_memory' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Add persistent context fields. The assistant refers to this memory to adapt explanations to your school curriculum.</p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  value={newMemory}
+                  onChange={(e) => setNewMemory(e.target.value)}
+                  placeholder="e.g. Studying Computer Engineering at Goa University..."
+                  style={{ flexGrow: 1, padding: '8px 12px', fontSize: '11px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white', outline: 'none' }}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    if (!newMemory.trim()) return;
+                    const updated = [newMemory, ...memories];
+                    setMemories(updated);
+                    localStorage.setItem('ai_memories', JSON.stringify(updated));
+                    setNewMemory('');
+                  }}
+                  className="mode-toggle-btn mode-toggle-mock" 
+                  style={{ fontSize: '11px', padding: '8px 16px' }}
+                >
+                  Add
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
+                {memories.length === 0 ? (
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>No persistent memory fields saved yet.</span>
+                ) : (
+                  memories.map((mem, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.02)' }}>
+                      <span style={{ fontSize: '11px', color: '#e2e8f0' }}>{mem}</span>
+                      <button 
+                        onClick={() => {
+                          const updated = memories.filter((_, i) => i !== idx);
+                          setMemories(updated);
+                          localStorage.setItem('ai_memories', JSON.stringify(updated));
+                        }}
+                        style={{ background: 'none', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', fontSize: '10px' }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 4. Upgrade Modal */}
+          {activeModal === 'upgrade' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', textAlign: 'center' }}>
+              <div style={{ background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', boxShadow: '0 0 20px rgba(168,85,247,0.4)' }}>
+                <Zap size={22} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'white', margin: '0 0 4px 0' }}>Upgrade to AI Ultra</h3>
+                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', maxWidth: '340px' }}>
+                  Unlock double the token limit, advanced multi-agent execution paths, consensus checks, and a visual coding sandbox!
+                </p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => {
+                  alert('Thank you! You are now upgraded to AI Ultra (Mock Mode)!');
+                  setActiveModal(null);
+                }}
+                className="mode-toggle-btn mode-toggle-mock" 
+                style={{ width: '100%', padding: '10px 16px', background: 'white', color: 'black', fontWeight: '700', borderRadius: '8px' }}
+              >
+                Start Free Trial
+              </button>
+              <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>$20/month. Cancel anytime.</span>
+            </div>
+          )}
+
+          {/* 5. Help Modal */}
+          {activeModal === 'help' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Welcome to the AI Study Assistant! Here are some features to help you get started:</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px', textAlign: 'left' }}>
+                <div>💡 <strong>Interactive Quiz</strong>: Type <em>"give me a quiz on photosynthesis"</em> to get an interactive, grading quiz card directly in chat!</div>
+                <div>🎴 <strong>Study Flashcards</strong>: Type <em>"create flashcards for computer networks"</em> to get double-sided flip study cards!</div>
+                <div>📂 <strong>RAG Projects</strong>: Paste syllabus texts in the Projects tab to make the AI query local textbooks.</div>
+                <div>🔌 <strong>Plugins Store</strong>: Install active widgets like GitHub or Notion to connect your student workspaces.</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -934,6 +1159,7 @@ Could not connect to backend server or webhook endpoint.
           )}
         </div>
       </div>
+      {renderSettingsModals()}
     </div>
   );
 }
