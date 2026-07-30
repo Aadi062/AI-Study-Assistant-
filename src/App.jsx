@@ -345,10 +345,23 @@ Could not connect to backend server or webhook endpoint.
             <button 
               onClick={handleCreateNewThread}
               className="thread-action-btn" 
-              style={{ padding: '8px', background: 'rgba(168, 85, 247, 0.05)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ 
+                width: '30px', 
+                height: '30px', 
+                borderRadius: '50%', 
+                border: '1.5px dashed rgba(255,255,255,0.3)', 
+                background: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                padding: '0',
+                transition: 'border-color 0.15s ease'
+              }}
               title="New chat"
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent-purple-light)'}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'}
             >
-              <SquarePen size={16} style={{ color: 'var(--accent-purple-light)' }} />
+              <SquarePen size={12} style={{ color: '#e2e8f0' }} />
             </button>
 
             <button 
