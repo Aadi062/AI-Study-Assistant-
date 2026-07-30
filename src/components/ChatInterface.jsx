@@ -1,10 +1,131 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, BookOpen, RefreshCw, Settings, Key, Volume2, Mic, Paperclip, AudioLines, PenTool, Globe, Image } from 'lucide-react';
+import { Send, Sparkles, BookOpen, RefreshCw, Settings, Key, Volume2, Mic, Paperclip, AudioLines, PenTool, Globe, Image, Upload, Video, Music, Code } from 'lucide-react';
 
 export default function ChatInterface({ activeVersion, setActiveVersion, onSendMessage, isProcessing, chatHistory, setChatHistory, chatMode, setChatMode }) {
   const [inputValue, setInputValue] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
+  const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
+  const [activeSubmenu, setActiveSubmenu] = useState(null);
+  const [personalIntelEnabled, setPersonalIntelEnabled] = useState(true);
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setIsAttachMenuOpen(false);
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, []);
+
+  const toggleAttachMenu = (e) => {
+    e.stopPropagation();
+    setIsAttachMenuOpen(!isAttachMenuOpen);
+    setActiveSubmenu(null);
+  };
+
+  const renderAttachPopover = () => {
+    if (activeSubmenu === 'uploads') {
+      return (
+        <div className="more-popover glass-panel animate-fade-in" onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', bottom: 'calc(100% + 12px)', left: '0', width: '220px', borderRadius: '12px', background: 'rgba(15, 18, 36, 0.96)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)', padding: '6px 0', zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
+          <button type="button" onClick={() => setActiveSubmenu(null)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--accent-purple-light)', cursor: 'pointer', fontSize: '11px', textAlign: 'left', fontWeight: 'bold' }}>
+            ← Back
+          </button>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '4px 0' }}></div>
+          <button type="button" onClick={() => { setInputValue(inputValue + " [Photos Attachment]"); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
+            <Image size={13} style={{ opacity: 0.6 }} /> Photos
+          </button>
+          <button type="button" className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%', opacity: 0.6 }} disabled>
+            <BookOpen size={13} style={{ opacity: 0.6 }} /> Avatar
+          </button>
+          <button type="button" onClick={() => { setInputValue(inputValue + " [Code Attachment]"); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
+            <Code size={13} style={{ opacity: 0.6 }} /> Import code
+          </button>
+          <button type="button" className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%', opacity: 0.6 }} disabled>
+            <BookOpen size={13} style={{ opacity: 0.6 }} /> Notebooks
+          </button>
+        </div>
+      );
+    }
+
+    if (activeSubmenu === 'tools') {
+      return (
+        <div className="more-popover glass-panel animate-fade-in" onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', bottom: 'calc(100% + 12px)', left: '0', width: '220px', borderRadius: '12px', background: 'rgba(15, 18, 36, 0.96)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)', padding: '6px 0', zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
+          <button type="button" onClick={() => setActiveSubmenu(null)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--accent-purple-light)', cursor: 'pointer', fontSize: '11px', textAlign: 'left', fontWeight: 'bold' }}>
+            ← Back
+          </button>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '4px 0' }}></div>
+          <button type="button" onClick={() => { setInputValue("Start Guided Learning session on "); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
+            <BookOpen size={13} style={{ opacity: 0.6 }} /> Guided Learning
+          </button>
+          <div className="popover-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', fontSize: '12px', color: '#e2e8f0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Sparkles size={13} style={{ color: 'var(--accent-purple-light)' }} />
+              <div>
+                <div>Personal Intelligence</div>
+                <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Labs</div>
+              </div>
+            </div>
+            <input 
+              type="checkbox" 
+              checked={personalIntelEnabled}
+              onChange={() => setPersonalIntelEnabled(!personalIntelEnabled)}
+              style={{ cursor: 'pointer' }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="more-popover glass-panel animate-fade-in" onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', bottom: 'calc(100% + 12px)', left: '0', width: '220px', borderRadius: '12px', background: 'rgba(15, 18, 36, 0.96)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)', padding: '6px 0', zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
+        <button type="button" onClick={() => { setInputValue(inputValue + " [File Attachment]"); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
+          <Upload size={13} style={{ color: 'var(--text-muted)' }} /> Upload files
+        </button>
+        <button type="button" className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%', opacity: 0.6 }} disabled>
+          <Globe size={13} style={{ color: 'var(--text-muted)' }} /> Add from Drive
+        </button>
+        <button type="button" onClick={() => setActiveSubmenu('uploads')} className="popover-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', fontSize: '12px', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <MoreHorizontal size={13} style={{ color: 'var(--text-muted)' }} /> More uploads
+          </div>
+          <span style={{ fontSize: '9px', opacity: 0.5 }}>▶</span>
+        </button>
+        
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '6px 0' }}></div>
+        
+        <button type="button" onClick={() => { setInputValue("Create an image of "); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', fontSize: '12px', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Image size={13} style={{ color: 'var(--text-muted)' }} /> Create image
+          </div>
+          <span style={{ fontSize: '9px', background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '8px', color: 'var(--text-muted)' }}>New</span>
+        </button>
+        <button type="button" onClick={() => { setInputValue("Create a video of "); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
+          <Video size={13} style={{ color: 'var(--text-muted)' }} /> Create video
+        </button>
+        <button type="button" onClick={() => { setInputValue("Create music about "); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', fontSize: '12px', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Music size={13} style={{ color: 'var(--text-muted)' }} /> Create music
+          </div>
+          <span style={{ fontSize: '9px', background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '8px', color: 'var(--text-muted)' }}>New</span>
+        </button>
+        <button type="button" onClick={() => { setInputValue("Open canvas workspace for "); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
+          <PenTool size={13} style={{ color: 'var(--text-muted)' }} /> Canvas
+        </button>
+        <button type="button" onClick={() => { setInputValue("Run deep research on "); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
+          <Search size={13} style={{ color: 'var(--text-muted)' }} /> Deep Research
+        </button>
+        <button type="button" onClick={() => setActiveSubmenu('tools')} className="popover-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', fontSize: '12px', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <MoreHorizontal size={13} style={{ color: 'var(--text-muted)' }} /> More tools
+          </div>
+          <span style={{ fontSize: '9px', opacity: 0.5 }}>▶</span>
+        </button>
+      </div>
+    );
+  };
+
   const messagesEndRef = useRef(null);
 
   const [speakingId, setSpeakingId] = useState(null);
@@ -354,15 +475,19 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
 
       {/* Input Form */}
       <form onSubmit={handleSubmit} className="chat-input-container">
-        <div className="chat-input-wrapper">
-          <button
-            type="button"
-            className="drawer-close-btn"
-            style={{ padding: '6px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            title="Attach files (Mock)"
-          >
-            <Paperclip size={14} />
-          </button>
+        <div className="chat-input-wrapper" style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={toggleAttachMenu}
+              className="drawer-close-btn"
+              style={{ padding: '6px', color: isAttachMenuOpen ? 'var(--accent-purple-light)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              title="Attach files & tools"
+            >
+              <Paperclip size={14} style={{ transform: isAttachMenuOpen ? 'rotate(45deg)' : 'none', transition: 'transform 0.15s ease' }} />
+            </button>
+            {isAttachMenuOpen && renderAttachPopover()}
+          </div>
           
           <input
             type="text"
