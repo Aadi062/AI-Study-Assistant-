@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ChatInterface from './components/ChatInterface';
 import WorkflowVisualizer from './components/WorkflowVisualizer';
 import LogsDashboard from './components/LogsDashboard';
-import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X, Trash2, SquarePen, Image, BookOpen, Globe, Folder, Code, MoreHorizontal, Search, PanelLeftClose } from 'lucide-react';
+import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X, Trash2, SquarePen, Image, BookOpen, Globe, Folder, Code, MoreHorizontal, Search, PanelLeftClose, History, FileUp, Sun, Zap, HelpCircle } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('visualizer');
@@ -33,7 +33,76 @@ export default function App() {
   const [sessionsList, setSessionsList] = useState([]);
   const [isThreadsExpanded, setIsThreadsExpanded] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
+
+  React.useEffect(() => {
+    const handleDocumentClick = () => {
+      setIsMoreMenuOpen(false);
+    };
+    document.addEventListener('click', handleDocumentClick);
+    return () => {
+      document.removeEventListener('click', handleDocumentClick);
+    };
+  }, []);
+
+  const toggleMoreMenu = (e) => {
+    e.stopPropagation();
+    setIsMoreMenuOpen(!isMoreMenuOpen);
+  };
+
+  const renderMorePopover = (isCollapsed) => {
+    return (
+      <div 
+        className="more-popover glass-panel"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'absolute',
+          bottom: '100%',
+          left: isCollapsed ? '50px' : '0',
+          marginBottom: '8px',
+          width: '240px',
+          zIndex: 999,
+          borderRadius: '12px',
+          background: 'rgba(15, 18, 36, 0.95)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+          padding: '8px 0',
+          display: 'flex',
+          flexDirection: 'column',
+          color: 'var(--text-secondary)'
+        }}
+      >
+        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+          <History size={14} style={{ color: 'var(--text-muted)' }} /> Activity
+        </button>
+        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+          <Sparkles size={14} style={{ color: 'var(--text-muted)' }} /> Personal Intelligence
+        </button>
+        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+          <FileUp size={14} style={{ color: 'var(--text-muted)' }} /> Import memory
+        </button>
+        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+          <Sun size={14} style={{ color: 'var(--text-muted)' }} /> Theme
+        </button>
+        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+          <Zap size={14} style={{ color: 'var(--accent-purple-light)' }} /> Upgrade to AI Ultra
+        </button>
+        <button className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px' }}>
+          <HelpCircle size={14} style={{ color: 'var(--text-muted)' }} /> Help
+        </button>
+        
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '6px 0' }}></div>
+        
+        <div style={{ padding: '6px 16px', fontSize: '10px', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent-purple-light)' }}>
+            <span style={{ fontSize: '12px' }}>•</span> Vodlemol Cacora, Goa, India
+          </div>
+          <div>From your IP address</div>
+        </div>
+      </div>
+    );
+  };
 
   const loadSessionHistory = (sessId) => {
     fetch(`${BACKEND_URL}/api/sessions/${sessId}`)
@@ -303,9 +372,17 @@ Could not connect to backend server or webhook endpoint.
             <div style={{ flexGrow: 1 }}></div>
 
             {/* Help / Settings */}
-            <button className="thread-action-btn" title="More options" style={{ opacity: 0.6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <MoreHorizontal size={16} />
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button 
+                onClick={toggleMoreMenu}
+                className="thread-action-btn" 
+                title="More options" 
+                style={{ opacity: 0.8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <MoreHorizontal size={16} />
+              </button>
+              {isMoreMenuOpen && renderMorePopover(true)}
+            </div>
           </div>
         ) : (
           <div className="sidebar-top">
@@ -379,9 +456,16 @@ Could not connect to backend server or webhook endpoint.
               <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
                 <Code size={14} /> Codex
               </button>
-              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
-                <MoreHorizontal size={14} /> More
-              </button>
+              <div style={{ position: 'relative', width: '100%' }}>
+                <button 
+                  onClick={toggleMoreMenu}
+                  className="nav-btn" 
+                  style={{ height: '34px', padding: '8px 12px', width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <MoreHorizontal size={14} /> More
+                </button>
+                {isMoreMenuOpen && renderMorePopover(false)}
+              </div>
             </div>
 
             {/* Active Chats Threads Section */}
