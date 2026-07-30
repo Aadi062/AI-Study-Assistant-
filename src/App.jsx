@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ChatInterface from './components/ChatInterface';
 import WorkflowVisualizer from './components/WorkflowVisualizer';
 import LogsDashboard from './components/LogsDashboard';
-import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X, Trash2, SquarePen, Image, BookOpen, Globe, Folder, Code, MoreHorizontal, Search, PanelLeftClose, History, FileUp, Sun, Zap, HelpCircle } from 'lucide-react';
+import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X, Trash2, SquarePen, Image, BookOpen, Globe, Folder, Code, MoreHorizontal, Search, PanelLeftClose, History, FileUp, Sun, Zap, HelpCircle, Mic, Paperclip } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('visualizer');
@@ -34,6 +34,7 @@ export default function App() {
   const [isThreadsExpanded, setIsThreadsExpanded] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [installedPlugins, setInstalledPlugins] = useState([]);
   const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
   React.useEffect(() => {
@@ -383,12 +384,48 @@ Could not connect to backend server or webhook endpoint.
             </button>
 
             <button 
+              onClick={() => setActiveTab('images')}
+              className={`thread-action-btn ${activeTab === 'images' ? 'active-icon-btn' : ''}`}
+              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Images"
+            >
+              <Image size={16} />
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('library')}
+              className={`thread-action-btn ${activeTab === 'library' ? 'active-icon-btn' : ''}`}
+              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Library"
+            >
+              <BookOpen size={16} />
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('plugins')}
+              className={`thread-action-btn ${activeTab === 'plugins' ? 'active-icon-btn' : ''}`}
+              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Plugins"
+            >
+              <Globe size={16} />
+            </button>
+
+            <button 
               onClick={() => setActiveTab('projects')}
               className={`thread-action-btn ${activeTab === 'projects' ? 'active-icon-btn' : ''}`}
               style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               title="Projects Workspace"
             >
               <Folder size={16} />
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('codex')}
+              className={`thread-action-btn ${activeTab === 'codex' ? 'active-icon-btn' : ''}`}
+              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Codex"
+            >
+              <Code size={16} />
             </button>
             
             <div style={{ flexGrow: 1 }}></div>
@@ -463,13 +500,25 @@ Could not connect to backend server or webhook endpoint.
 
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '8px 0' }}></div>
 
-              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <button 
+                onClick={() => setActiveTab('images')}
+                className={`nav-btn ${activeTab === 'images' ? 'nav-btn-active' : ''}`}
+                style={{ height: '34px', padding: '8px 12px' }}
+              >
                 <Image size={14} /> Images
               </button>
-              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <button 
+                onClick={() => setActiveTab('library')}
+                className={`nav-btn ${activeTab === 'library' ? 'nav-btn-active' : ''}`}
+                style={{ height: '34px', padding: '8px 12px' }}
+              >
                 <BookOpen size={14} /> Library
               </button>
-              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <button 
+                onClick={() => setActiveTab('plugins')}
+                className={`nav-btn ${activeTab === 'plugins' ? 'nav-btn-active' : ''}`}
+                style={{ height: '34px', padding: '8px 12px' }}
+              >
                 <Globe size={14} /> Plugins
               </button>
               <button 
@@ -479,7 +528,11 @@ Could not connect to backend server or webhook endpoint.
               >
                 <Folder size={14} /> Projects
               </button>
-              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <button 
+                onClick={() => setActiveTab('codex')}
+                className={`nav-btn ${activeTab === 'codex' ? 'nav-btn-active' : ''}`}
+                style={{ height: '34px', padding: '8px 12px' }}
+              >
                 <Code size={14} /> Codex
               </button>
               <div style={{ position: 'relative', width: '100%' }}>
@@ -575,6 +628,215 @@ Could not connect to backend server or webhook endpoint.
               selectedNode={selectedNode}
               setSelectedNode={setSelectedNode}
             />
+          ) : activeTab === 'images' ? (
+            <div className="glass-panel animate-fade-in" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Image size={20} style={{ color: 'var(--accent-purple-light)' }} />
+                <div>
+                  <h2 style={{ fontSize: '16px', margin: 0, fontWeight: '700' }}>Images Generator Workspace</h2>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>Create custom illustrations, caricatures, and diagram assets using Gemini Image models.</p>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '4px 0' }}></div>
+
+              {/* Descriptive Prompter */}
+              <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '24px', padding: '8px 16px', alignItems: 'center', maxWidth: '600px', width: '100%', margin: '8px 0 16px 0' }}>
+                <Paperclip size={14} style={{ color: 'var(--text-muted)' }} />
+                <input 
+                  type="text" 
+                  placeholder="Describe a new image..." 
+                  style={{ flexGrow: 1, background: 'none', border: 'none', color: 'white', fontSize: '12px', outline: 'none' }}
+                />
+                <Mic size={14} style={{ color: 'var(--text-muted)' }} />
+                <button type="button" style={{ border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>▲</button>
+              </div>
+
+              {/* Create an image style cards */}
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: 'white', display: 'block', marginBottom: '10px' }}>Create an image style shortcuts</span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '12px' }}>
+                  {[
+                    { title: 'Create a caricature', desc: 'Cartoon avatar style' },
+                    { title: 'Anime', desc: 'Hand-drawn anime style' },
+                    { title: 'Underwater', desc: 'Deep ocean atmosphere' },
+                    { title: 'Summer list', desc: 'Vibrant outdoor palette' },
+                    { title: 'Pin collection', desc: 'Enamel pins and badges' }
+                  ].map((card, idx) => (
+                    <div key={idx} className="glass-panel" style={{ padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '110px', background: 'rgba(255,255,255,0.01)', cursor: 'pointer', transition: 'transform 0.15s ease' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                      <span style={{ fontSize: '11px', color: 'white', fontWeight: '600' }}>{card.title}</span>
+                      <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{card.desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* My generated images */}
+              <div style={{ marginTop: '12px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: 'white', display: 'block', marginBottom: '10px' }}>My images</span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+                  {['Computer Network Nodes Map', 'Photosynthesis Flowchart Diagram', 'Newtonian Physics Simulation Graph', 'Database Schema Relations Map'].map((name, idx) => (
+                    <div key={idx} className="glass-panel" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)', height: '100px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(0,0,0,0.4)', padding: '10px', position: 'relative' }}>
+                      <div style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '18px' }}>🖼️</div>
+                      <span style={{ fontSize: '9px', color: 'white', fontWeight: '600', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>{name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : activeTab === 'library' ? (
+            <div className="glass-panel animate-fade-in" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <BookOpen size={20} style={{ color: 'var(--accent-purple-light)' }} />
+                  <div>
+                    <h2 style={{ fontSize: '16px', margin: 0, fontWeight: '700' }}>Library Workspace</h2>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>Browse study files, uploaded documents, and indexed reference books.</p>
+                  </div>
+                </div>
+                {/* Search & Actions */}
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Search library..." 
+                    style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white', width: '160px', outline: 'none' }}
+                  />
+                  <button type="button" className="mode-toggle-btn mode-toggle-mock" style={{ fontSize: '11px', padding: '6px 12px', background: 'white', color: 'black' }}>
+                    + New
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '4px 0' }}></div>
+
+              {/* Pills Filters */}
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {['All', 'Images', 'Documents'].map((pill, idx) => (
+                  <span key={idx} style={{ fontSize: '10px', padding: '4px 10px', borderRadius: '20px', background: idx === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', color: idx === 0 ? 'white' : 'var(--text-muted)', cursor: 'pointer' }}>
+                    {pill}
+                  </span>
+                ))}
+              </div>
+
+              {/* Files Table List */}
+              <div style={{ overflowX: 'auto', marginTop: '8px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', color: 'var(--text-muted)' }}>
+                      <th style={{ padding: '8px 12px', fontWeight: '500' }}>Name</th>
+                      <th style={{ padding: '8px 12px', fontWeight: '500' }}>Modified</th>
+                      <th style={{ padding: '8px 12px', fontWeight: '500' }}>Size</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { name: 'Screenshot_2026-07-30-17-14-03-security-center.jpg', date: 'Jul 30, 4:44 AM', size: '97.5 KB', icon: '🖼️' },
+                      { name: '1000205719.jpg', date: 'Yesterday', size: '204 KB', icon: '🖼️' },
+                      { name: 'Unit I - Introduction to Databases.pdf', date: 'Yesterday', size: '1.76 MB', icon: '📕' },
+                      { name: 'SE-Unit1.pdf', date: 'Yesterday', size: '1.80 MB', icon: '📕' },
+                      { name: 'image-1785420553040.jpg', date: 'Tuesday', size: '340 KB', icon: '🖼️' },
+                      { name: 'Professional_Prompt_Engineering_on_21_Slides.pptx', date: 'Jul 25', size: '48.7 KB', icon: '📊' },
+                      { name: 'Prompt_Engineering_Practical_Assignment.pptx', date: 'Jul 25', size: '40.7 KB', icon: '📊' },
+                      { name: 'image(11).png', date: 'Jul 23', size: '80.7 KB', icon: '🖼️' },
+                      { name: 'Dark AI workflow editor interface.png', date: 'Jul 22', size: '1.57 MB', icon: '🖼️' },
+                      { name: 'AI Study Assistant workflow design(1).png', date: 'Jul 22', size: '1.61 MB', icon: '🖼️' }
+                    ].map((file, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                        <td style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#e2e8f0' }}>
+                          <span style={{ fontSize: '13px' }}>{file.icon}</span>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '340px' }} title={file.name}>
+                            {file.name}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>{file.date}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>{file.size}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : activeTab === 'plugins' ? (
+            <div className="glass-panel animate-fade-in" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Globe size={20} style={{ color: 'var(--accent-purple-light)' }} />
+                  <div>
+                    <h2 style={{ fontSize: '16px', margin: 0, fontWeight: '700' }}>Plugins Store</h2>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>Work with ChatGPT across your favorite productivity, engineering, and design tools.</p>
+                  </div>
+                </div>
+                {/* Search plugins input */}
+                <input 
+                  type="text" 
+                  placeholder="Search plugins..." 
+                  style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white', width: '180px', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '4px 0' }}></div>
+
+              {/* Featured Plugins Grid */}
+              {['Featured', 'Productivity', 'Creativity'].map((section, sIdx) => {
+                const pluginItems = section === 'Featured' ? [
+                  { name: 'Data Analytics', desc: 'Answer product and business questions with charts...' },
+                  { name: 'GitHub', desc: 'Triage PRs, issues, CI, and publish flows...' },
+                  { name: 'Investment Banking', desc: 'M&A, capital markets, valuation...' },
+                  { name: 'Public Equity Investing', desc: 'Public equity PM research, long/short...' },
+                  { name: 'Sales', desc: 'Practical workflows for sellers...' },
+                  { name: 'Google Drive', desc: 'Work across Drive, Docs, Sheets, and Slides...' }
+                ] : section === 'Productivity' ? [
+                  { name: 'Notion', desc: 'Notion workflows for specs, research, docs...' },
+                  { name: 'Google Calendar', desc: 'Manage Google Calendar events...' },
+                  { name: 'Linear', desc: 'Plan and build products...' },
+                  { name: 'ClickUp', desc: 'Turn Codex into your ClickUp command center...' },
+                  { name: 'Dropbox', desc: 'Access, save and share files...' },
+                  { name: 'Asana', desc: 'Turn chats into actions...' }
+                ] : [
+                  { name: 'Canva', desc: 'Create, review, edit designs...' },
+                  { name: 'Figma', desc: 'Design-to-code workflows powered by Figma...' },
+                  { name: 'Gamma', desc: 'Create presentations and docs...' },
+                  { name: 'Descript', desc: 'Edit video by chatting...' },
+                  { name: 'Adobe Photoshop', desc: 'Design, combine, and edit images...' },
+                  { name: 'Product Design', desc: 'Explore and prototype ideas...' }
+                ];
+
+                return (
+                  <div key={sIdx} style={{ marginTop: '8px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: 'white', display: 'block', marginBottom: '8px' }}>{section}</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {pluginItems.map((plugin, pIdx) => {
+                        const isInstalled = installedPlugins.includes(plugin.name);
+                        return (
+                          <div key={pIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', width: '80%' }}>
+                              <div style={{ fontSize: '16px' }}>🔌</div>
+                              <div style={{ overflow: 'hidden' }}>
+                                <div style={{ fontSize: '11px', color: 'white', fontWeight: '600' }}>{plugin.name}</div>
+                                <div style={{ fontSize: '9px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{plugin.desc}</div>
+                              </div>
+                            </div>
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                if (isInstalled) {
+                                  setInstalledPlugins(installedPlugins.filter(p => p !== plugin.name));
+                                } else {
+                                  setInstalledPlugins([...installedPlugins, plugin.name]);
+                                }
+                              }}
+                              style={{ border: 'none', background: isInstalled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.04)', color: isInstalled ? 'var(--accent-emerald-light)' : 'white', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '12px' }}
+                            >
+                              {isInstalled ? '✓' : '+'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : activeTab === 'projects' ? (
             <div className="glass-panel animate-fade-in" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -631,6 +893,38 @@ Could not connect to backend server or webhook endpoint.
                         <span>{doc.chunks}</span>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : activeTab === 'codex' ? (
+            <div className="glass-panel animate-fade-in" style={{ padding: '40px 24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'rgba(15, 18, 36, 0.5)', height: '100%', display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflowY: 'auto' }}>
+              {/* Codex Logo Sparkle */}
+              <div style={{ background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)', width: '72px', height: '72px', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', color: 'white', boxShadow: '0 0 40px rgba(168,85,247,0.3)' }}>
+                <Code size={36} />
+              </div>
+              
+              <div>
+                <h1 style={{ fontSize: '32px', fontWeight: '800', fontFamily: 'var(--font-sans)', color: 'white', margin: '0 0 10px 0' }}>Codex</h1>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '460px', margin: '0 auto', lineHeight: '1.6' }}>
+                  The same powerful coding agent—now in ChatGPT. Access automated codebase refactoring, live repository browsing, and package compiling checks natively.
+                </p>
+              </div>
+
+              {/* Download Action button */}
+              <button 
+                type="button" 
+                className="mode-toggle-btn mode-toggle-mock" 
+                style={{ fontSize: '12px', padding: '10px 24px', background: 'white', color: 'black', fontWeight: 'bold', borderRadius: '24px', boxShadow: '0 4px 15px rgba(255,255,255,0.1)' }}
+              >
+                Download for Windows
+              </button>
+
+              <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.04)', width: '100%', maxWidth: '500px', paddingTop: '16px' }}>
+                <span style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: '14px', fontWeight: '700' }}>Trusted by top teams</span>
+                <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', opacity: 0.6 }}>
+                  {['NVIDIA', 'AMGEN', 'CISCO', 'SHOPIFY', 'THOMSON REUTERS'].map((team, idx) => (
+                    <span key={idx} style={{ fontSize: '10px', fontWeight: '800', letterSpacing: '1px', color: '#e2e8f0' }}>{team}</span>
                   ))}
                 </div>
               </div>
