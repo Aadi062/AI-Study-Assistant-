@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { 
-  getSessions, saveSession, getLogs, addLog, 
+  getSessions, saveSession, saveSessionName, getLogs, addLog, 
   queryVectorDB, addCurriculumChunk, getCurriculum 
 } from './workspace_db.js';
 
@@ -22,11 +22,36 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // ----------------------------------------------------
 // API 1: Chat Endpoint (Supports Mock, Webhook, and Gemini RAG)
 // ----------------------------------------------------
+// Helper to strip markdown formatting
+function stripMarkdown(text) {
+  return text
+    .replace(/^###\s+/gm, '')        // remove headers
+    .replace(/\*\*(.*?)\*\*/g, '$1') // remove bold
+    .replace(/^\s*[-*+]\s+/gm, '')   // remove bullets
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // remove links
+    .replace(/`([^`]+)`/g, '$1');    // remove inline code
+}
+
 app.post('/api/chat', async (req, res) => {
-  const { sessionId, message, chatMode, activeVersion, apiKey } = req.body;
+  const { sessionId, message, chatMode, activeVersion, apiKey, isInit } = req.body;
+  const originalMessage = message;
   const startTime = Date.now();
-  const queryLower = message.toLowerCase();
+  const queryLower = message ? message.toLowerCase() : '';
   
+  // Handle new thread initialization
+  if (isInit) {
+    const defaultHistory = [
+      {
+        id: 'welcome',
+        sender: 'assistant',
+        text: "Hello! I am your AI Study Assistant. I can help you understand syllabus concepts, textbook definitions, and walk you through difficult problems. Feel free to ask a question, or ask me for a 'practice quiz' on any topic!",
+        timestamp: new Date()
+      }
+    ];
+    saveSession(sessionId, defaultHistory, `Thread ${Object.keys(getSessions()).length + 1}`);
+    return res.json({ reply: "Initialized", path: 'B' });
+  }
+
   let assistantReply = '';
   let path = 'B'; // default Path B (New)
   
@@ -35,6 +60,82 @@ app.post('/api/chat', async (req, res) => {
   const session = sessions[sessionId];
   if (session && session.history.length > 1) {
     path = 'A';
+  }
+
+  // Auto-rename thread if it's a default "Thread X" and this is the first real message
+  if (session && session.name && /^Thread \d+$/i.test(session.name) && session.history.length <= 1) {
+    const nameClean = message.length > 22 ? message.substring(0, 22) + '...' : message;
+    saveSessionName(sessionId, nameClean);
+  }
+
+  // Detect plain text formatting instructions
+  const isPlainTextRequest = /\b(plain\s*text|no\s*markdown|remove\s*markdown|strip\s*markdown|without\s*markdown|in\s*plain\s*text|give\s*it\s*(to\s*me\s*)?in\s*plain\s*text|just\s*text)\b/i.test(message);
+  
+  let targetQuery = message;
+  let isFollowUpFormatting = false;
+
+  if (isPlainTextRequest) {
+    const cleanQuery = message
+      .replace(/\b(in\s*|)plain\s*text|no\s*markdown|remove\s*markdown|strip\s*markdown|without\s*markdown|give\s*it\s*(to\s*me\s*)?in\s*plain\s*text|just\s*text\b/gi, '')
+      .replace(/\b(please|give\s*me|show\s*me|format|as|in|to|me|the|on|about)\b/gi, '')
+      .trim();
+      
+    if (cleanQuery.length < 3) {
+      isFollowUpFormatting = true;
+    } else {
+      targetQuery = cleanQuery;
+    }
+  }
+
+  // Handle follow-up formatting request
+  if (isFollowUpFormatting && session && session.history) {
+    let lastAssistantMsg = null;
+    for (let i = session.history.length - 1; i >= 0; i--) {
+      if (session.history[i].sender === 'assistant') {
+        lastAssistantMsg = session.history[i];
+        break;
+      }
+    }
+
+    if (lastAssistantMsg) {
+      const plainTextReply = stripMarkdown(lastAssistantMsg.text);
+      
+      const prevHistory = session.history;
+      const updatedHistory = [...prevHistory, 
+        { id: Date.now() + '-stud', sender: 'student', text: message, timestamp: new Date() },
+        { 
+          id: Date.now() + '-asst', 
+          sender: 'assistant', 
+          text: plainTextReply, 
+          timestamp: new Date(),
+          agentLogs: [
+            { agent: "Planner Agent", action: "Detected format change request (plain text).", status: "completed" },
+            { agent: "Writer Agent", action: "Formatted last response to plain text by removing Markdown tags.", status: "completed" }
+          ],
+          sources: lastAssistantMsg.sources || []
+        }
+      ];
+      saveSession(sessionId, updatedHistory);
+      
+      addLog({
+        status: 'success',
+        version: chatMode === 'gemini' ? 'Gemini-Flash-RAG' : (chatMode === 'webhook' ? activeVersion : 'Mock-Engine'),
+        duration: Date.now() - startTime,
+        path,
+        query: message,
+        response: plainTextReply
+      });
+
+      return res.json({ 
+        reply: plainTextReply, 
+        path, 
+        agentLogs: [
+          { agent: "Planner Agent", action: "Detected format change request (plain text).", status: "completed" },
+          { agent: "Writer Agent", action: "Formatted last response to plain text by removing Markdown tags.", status: "completed" }
+        ], 
+        sources: lastAssistantMsg.sources || [] 
+      });
+    }
   }
 
   // ----------------------------------------------------
@@ -56,7 +157,7 @@ app.post('/api/chat', async (req, res) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content: { parts: [{ text: message }] }
+            content: { parts: [{ text: targetQuery }] }
           })
         });
 
@@ -88,7 +189,7 @@ app.post('/api/chat', async (req, res) => {
 
       historyParts.push({
         role: 'user',
-        parts: [{ text: message }]
+        parts: [{ text: targetQuery }]
       });
 
       // 4. Construct System Instruction with Vector Grounding
@@ -145,6 +246,10 @@ If the student asks for a study plan or schedule, generate a day-by-day structur
 
       const geminiData = await geminiResponse.json();
       assistantReply = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "No response received from Gemini.";
+
+      if (isPlainTextRequest) {
+        assistantReply = stripMarkdown(assistantReply);
+      }
 
       // 6. Save history to Database
       const agentLogs = [
@@ -203,12 +308,29 @@ If the student asks for a study plan or schedule, generate a day-by-day structur
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, message })
+        body: JSON.stringify({ sessionId, message: targetQuery })
       });
 
       if (!response.ok) throw new Error('Webhook connection failed');
       const data = await response.json();
       assistantReply = data.reply || "Grounded webhook response executed successfully.";
+
+      if (isPlainTextRequest) {
+        assistantReply = stripMarkdown(assistantReply);
+      }
+
+      // Save history to Database
+      const prevHistory = session ? session.history : [];
+      const updatedHistory = [...prevHistory, 
+        { id: Date.now() + '-stud', sender: 'student', text: message, timestamp: new Date() },
+        { 
+          id: Date.now() + '-asst', 
+          sender: 'assistant', 
+          text: assistantReply, 
+          timestamp: new Date()
+        }
+      ];
+      saveSession(sessionId, updatedHistory);
 
       addLog({
         status: 'success',
@@ -239,6 +361,8 @@ If the student asks for a study plan or schedule, generate a day-by-day structur
   // MODE 3: MOCK SIMULATION (DuckDuckGo fallback & custom guides)
   // ----------------------------------------------------
   if (chatMode === 'mock') {
+    const message = targetQuery;
+    const queryLower = targetQuery.toLowerCase();
     // Exact subject match checks
     if (queryLower.includes('flashcard') || queryLower.includes('flash card')) {
       const topicRaw = message.replace(/give me|generate|flashcards on|flash cards on|cards on/gi, '').trim();
@@ -511,9 +635,13 @@ ${ddgData.Abstract}
     ];
     const sources = assistantReply.includes('DuckDuckGo') ? ["DuckDuckGo abstract search results"] : ["Curriculum guidelines profile cache"];
 
+    if (isPlainTextRequest) {
+      assistantReply = stripMarkdown(assistantReply);
+    }
+
     const prevHistory = session ? session.history : [];
     const updatedHistory = [...prevHistory, 
-      { id: Date.now() + '-stud', sender: 'student', text: message, timestamp: new Date() },
+      { id: Date.now() + '-stud', sender: 'student', text: originalMessage, timestamp: new Date() },
       { 
         id: Date.now() + '-asst', 
         sender: 'assistant', 
@@ -530,7 +658,7 @@ ${ddgData.Abstract}
       version: 'Mock-Engine',
       duration: Date.now() - startTime,
       path,
-      query: message,
+      query: originalMessage,
       response: assistantReply
     });
 
@@ -631,6 +759,23 @@ app.get('/api/sessions/:sessionId', (req, res) => {
   const sessions = getSessions();
   const session = sessions[req.params.sessionId];
   return res.json(session ? session.history : []);
+});
+
+// Get all sessions
+app.get('/api/sessions', (req, res) => {
+  const sessions = getSessions();
+  return res.json(Object.values(sessions).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
+});
+
+// Rename a session
+app.post('/api/sessions/:sessionId/rename', (req, res) => {
+  const { name } = req.body;
+  const session = saveSessionName(req.params.sessionId, name);
+  if (session) {
+    return res.json({ success: true, session });
+  } else {
+    return res.status(404).json({ error: 'Session not found' });
+  }
 });
 
 // ----------------------------------------------------

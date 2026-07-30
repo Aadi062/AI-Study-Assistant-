@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ChatInterface from './components/ChatInterface';
 import WorkflowVisualizer from './components/WorkflowVisualizer';
 import LogsDashboard from './components/LogsDashboard';
-import { BarChart2, Cpu, Sparkles } from 'lucide-react';
+import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('visualizer');
@@ -29,19 +29,95 @@ export default function App() {
   const [isIngesting, setIsIngesting] = useState(false);
   const [ingestStatus, setIngestStatus] = useState('');
 
-  const sessionId = 'student-session-001';
+  const [currentSessionId, setCurrentSessionId] = useState('student-session-001');
+  const [sessionsList, setSessionsList] = useState([]);
   const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
-  // 1. Initial Load of Session History from database
-  React.useEffect(() => {
-    fetch(`${BACKEND_URL}/api/sessions/${sessionId}`)
+  const loadSessionHistory = (sessId) => {
+    fetch(`${BACKEND_URL}/api/sessions/${sessId}`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         if (data.length > 0) {
           setChatHistory(data);
+        } else {
+          setChatHistory([
+            {
+              id: 'welcome',
+              sender: 'assistant',
+              text: "Hello! I am your AI Study Assistant. I can help you understand syllabus concepts, textbook definitions, and walk you through difficult problems. Feel free to ask a question, or ask me for a 'practice quiz' on any topic!",
+              timestamp: new Date()
+            }
+          ]);
         }
       })
       .catch(err => console.error("Error loading session history from database:", err));
+  };
+
+  const loadSessions = async (selectId = null) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/sessions`);
+      if (res.ok) {
+        const data = await res.json();
+        setSessionsList(data);
+        if (data.length > 0) {
+          const targetId = selectId || currentSessionId;
+          const exists = data.some(s => s.sessionId === targetId);
+          const activeId = exists ? targetId : data[0].sessionId;
+          setCurrentSessionId(activeId);
+          loadSessionHistory(activeId);
+        } else {
+          handleCreateNewThread();
+        }
+      }
+    } catch (err) {
+      console.error("Error loading sessions:", err);
+    }
+  };
+
+  const handleCreateNewThread = async () => {
+    const newSessionId = 'session-' + Date.now() + '-' + Math.random().toString(16).substring(2, 6);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: newSessionId,
+          message: 'Initialize Thread',
+          chatMode: 'mock',
+          activeVersion,
+          apiKey: localStorage.getItem('gemini_api_key'),
+          isInit: true
+        })
+      });
+
+      if (response.ok) {
+        setCurrentSessionId(newSessionId);
+        await loadSessions(newSessionId);
+      }
+    } catch (err) {
+      console.error("Error creating new thread:", err);
+    }
+  };
+
+  const handleRenameThread = async (sessId, newName) => {
+    if (!newName.trim()) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/sessions/${sessId}/rename`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName })
+      });
+      if (res.ok) {
+        await loadSessions(sessId);
+      }
+    } catch (err) {
+      console.error("Error renaming thread:", err);
+    }
+  };
+
+  // 1. Initial Load of Sessions from database
+  React.useEffect(() => {
+    loadSessions();
   }, []);
 
   // 2. Load execution logs on mount and when histories change
@@ -76,7 +152,7 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId,
+          sessionId: currentSessionId,
           message: userMessage,
           chatMode,
           activeVersion,
@@ -90,7 +166,7 @@ export default function App() {
       }
 
       // Sync updated history and execution logs from database files
-      const historyResponse = await fetch(`${BACKEND_URL}/api/sessions/${sessionId}`);
+      const historyResponse = await fetch(`${BACKEND_URL}/api/sessions/${currentSessionId}`);
       if (historyResponse.ok) {
         const historyData = await historyResponse.json();
         setChatHistory(historyData);
@@ -186,6 +262,34 @@ Could not connect to backend server or webhook endpoint.
               <BarChart2 size={16} /> Run Executions
             </button>
           </div>
+
+          {/* Active Chats Threads Section */}
+          <div className="threads-section">
+            <div className="threads-header">
+              <span>Active Threads</span>
+              <button 
+                onClick={handleCreateNewThread} 
+                className="new-thread-link"
+                title="Create new thread"
+              >
+                <Plus size={10} /> New Thread
+              </button>
+            </div>
+            <div className="threads-list">
+              {sessionsList.map(sessionItem => (
+                <ThreadItem 
+                  key={sessionItem.sessionId}
+                  session={sessionItem}
+                  isActive={sessionItem.sessionId === currentSessionId}
+                  onSelect={() => {
+                    setCurrentSessionId(sessionItem.sessionId);
+                    loadSessionHistory(sessionItem.sessionId);
+                  }}
+                  onRename={(newName) => handleRenameThread(sessionItem.sessionId, newName)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Footer details */}
@@ -254,6 +358,82 @@ Could not connect to backend server or webhook endpoint.
             <LogsDashboard executions={executions} />
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ThreadItem({ session, isActive, onSelect, onRename }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(session.name || `Thread`);
+
+  const handleSubmit = (e) => {
+    e.stopPropagation();
+    onRename(editName);
+    setIsEditing(false);
+  };
+
+  const handleCancel = (e) => {
+    e.stopPropagation();
+    setEditName(session.name || `Thread`);
+    setIsEditing(false);
+  };
+
+  return (
+    <div 
+      onClick={onSelect}
+      className={`thread-item ${isActive ? 'thread-item-active' : ''}`}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+        <MessageSquare size={12} style={{ flexShrink: 0, opacity: isActive ? 0.8 : 0.4 }} />
+        {isEditing ? (
+          <input
+            type="text"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSubmit(e);
+              if (e.key === 'Escape') handleCancel(e);
+            }}
+            className="thread-rename-input"
+            autoFocus
+          />
+        ) : (
+          <span className="thread-name">{session.name || `Thread`}</span>
+        )}
+      </div>
+
+      <div className="thread-actions">
+        {isEditing ? (
+          <>
+            <button 
+              onClick={handleSubmit}
+              className="thread-action-btn"
+              title="Save Name"
+            >
+              <Check size={10} />
+            </button>
+            <button 
+              onClick={handleCancel}
+              className="thread-action-btn"
+              title="Cancel"
+            >
+              <X size={10} />
+            </button>
+          </>
+        ) : (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }}
+            className="thread-action-btn"
+            title="Rename Chat"
+          >
+            <Edit2 size={10} />
+          </button>
+        )}
       </div>
     </div>
   );

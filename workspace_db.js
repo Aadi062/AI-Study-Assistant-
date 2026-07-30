@@ -35,15 +35,28 @@ const writeJsonFile = (filePath, data) => {
 // DB APIs
 // ----------------------------------------------------
 export const getSessions = () => readJsonFile(SESSIONS_FILE, {});
-export const saveSession = (sessionId, history) => {
+export const saveSession = (sessionId, history, name = null) => {
   const sessions = getSessions();
+  const existing = sessions[sessionId];
   sessions[sessionId] = {
     sessionId,
     history,
+    name: name || (existing && existing.name) || `Thread ${Object.keys(sessions).length + 1}`,
     updatedAt: new Date()
   };
   writeJsonFile(SESSIONS_FILE, sessions);
   return sessions[sessionId];
+};
+
+export const saveSessionName = (sessionId, name) => {
+  const sessions = getSessions();
+  if (sessions[sessionId]) {
+    sessions[sessionId].name = name;
+    sessions[sessionId].updatedAt = new Date();
+    writeJsonFile(SESSIONS_FILE, sessions);
+    return sessions[sessionId];
+  }
+  return null;
 };
 
 export const getLogs = () => readJsonFile(LOGS_FILE, []);
