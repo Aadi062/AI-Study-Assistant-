@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ChatInterface from './components/ChatInterface';
 import WorkflowVisualizer from './components/WorkflowVisualizer';
 import LogsDashboard from './components/LogsDashboard';
-import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X, Trash2 } from 'lucide-react';
+import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X, Trash2, SquarePen, Image, BookOpen, Globe, Folder, Code, MoreHorizontal, Search, PanelLeftClose } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('visualizer');
@@ -254,18 +254,39 @@ Could not connect to backend server or webhook endpoint.
       <div className="sidebar glass-panel">
         <div className="sidebar-top">
           {/* Logo Brand */}
-          <div className="brand">
-            <div className="brand-logo">
-              <Sparkles size={18} />
+          <div className="brand" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="brand-logo">
+                <Sparkles size={18} />
+              </div>
+              <div className="brand-info">
+                <h1 className="gradient-text">AI study</h1>
+                <span>Study Assistant UI</span>
+              </div>
             </div>
-            <div className="brand-info">
-              <h1 className="gradient-text">AI study</h1>
-              <span>Study Assistant UI</span>
+            {/* Header Icons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
+              <button className="thread-action-btn" title="Search"><Search size={14} /></button>
+              <button className="thread-action-btn" title="Toggle Sidebar"><PanelLeftClose size={14} /></button>
             </div>
           </div>
 
           {/* Navigation Items */}
           <div className="nav-group">
+            <button
+              onClick={handleCreateNewThread}
+              className="nav-btn"
+              style={{ 
+                background: 'rgba(168, 85, 247, 0.05)', 
+                border: '1px solid rgba(168, 85, 247, 0.12)',
+                color: 'var(--accent-purple-light)',
+                fontWeight: '700',
+                marginBottom: '8px'
+              }}
+            >
+              <SquarePen size={16} /> New chat
+            </button>
+
             <button
               onClick={() => setActiveTab('visualizer')}
               className={`nav-btn ${activeTab === 'visualizer' ? 'nav-btn-active' : ''}`}
@@ -277,6 +298,27 @@ Could not connect to backend server or webhook endpoint.
               className={`nav-btn ${activeTab === 'logs' ? 'nav-btn-active' : ''}`}
             >
               <BarChart2 size={16} /> Run Executions
+            </button>
+
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '8px 0' }}></div>
+
+            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <Image size={14} /> Images
+            </button>
+            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <BookOpen size={14} /> Library
+            </button>
+            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <Globe size={14} /> Plugins
+            </button>
+            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <Folder size={14} /> Projects
+            </button>
+            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <Code size={14} /> Codex
+            </button>
+            <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <MoreHorizontal size={14} /> More
             </button>
           </div>
 
