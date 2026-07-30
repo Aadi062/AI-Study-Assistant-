@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { 
-  getSessions, saveSession, saveSessionName, getLogs, addLog, 
+  getSessions, saveSession, saveSessionName, deleteSession, getLogs, addLog, 
   queryVectorDB, addCurriculumChunk, getCurriculum 
 } from './workspace_db.js';
 
@@ -815,6 +815,16 @@ app.post('/api/sessions/:sessionId/rename', (req, res) => {
   const session = saveSessionName(req.params.sessionId, name);
   if (session) {
     return res.json({ success: true, session });
+  } else {
+    return res.status(404).json({ error: 'Session not found' });
+  }
+});
+
+// Delete a session
+app.delete('/api/sessions/:sessionId', (req, res) => {
+  const deleted = deleteSession(req.params.sessionId);
+  if (deleted) {
+    return res.json({ success: true, message: 'Session deleted successfully' });
   } else {
     return res.status(404).json({ error: 'Session not found' });
   }

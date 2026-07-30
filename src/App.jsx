@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ChatInterface from './components/ChatInterface';
 import WorkflowVisualizer from './components/WorkflowVisualizer';
 import LogsDashboard from './components/LogsDashboard';
-import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X } from 'lucide-react';
+import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X, Trash2 } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('visualizer');
@@ -112,6 +112,19 @@ export default function App() {
       }
     } catch (err) {
       console.error("Error renaming thread:", err);
+    }
+  };
+
+  const handleDeleteThread = async (sessId) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/sessions/${sessId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        await loadSessions();
+      }
+    } catch (err) {
+      console.error("Error deleting thread:", err);
     }
   };
 
@@ -286,6 +299,7 @@ Could not connect to backend server or webhook endpoint.
                     loadSessionHistory(sessionItem.sessionId);
                   }}
                   onRename={(newName) => handleRenameThread(sessionItem.sessionId, newName)}
+                  onDelete={() => handleDeleteThread(sessionItem.sessionId)}
                 />
               ))}
             </div>
@@ -363,7 +377,7 @@ Could not connect to backend server or webhook endpoint.
   );
 }
 
-function ThreadItem({ session, isActive, onSelect, onRename }) {
+function ThreadItem({ session, isActive, onSelect, onRename, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(session.name || `Thread`);
 
@@ -423,16 +437,31 @@ function ThreadItem({ session, isActive, onSelect, onRename }) {
             </button>
           </>
         ) : (
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsEditing(true);
-            }}
-            className="thread-action-btn"
-            title="Rename Chat"
-          >
-            <Edit2 size={10} />
-          </button>
+          <>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+              }}
+              className="thread-action-btn"
+              title="Rename Chat"
+            >
+              <Edit2 size={10} />
+            </button>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`Are you sure you want to delete "${session.name || 'this thread'}"?`)) {
+                  onDelete();
+                }
+              }}
+              className="thread-action-btn"
+              title="Delete Chat"
+              style={{ color: 'var(--accent-coral-light)' }}
+            >
+              <Trash2 size={10} />
+            </button>
+          </>
         )}
       </div>
     </div>
