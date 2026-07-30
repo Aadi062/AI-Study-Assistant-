@@ -27,6 +27,7 @@ function stripMarkdown(text) {
   return text
     .replace(/^###\s+/gm, '')        // remove headers
     .replace(/\*\*(.*?)\*\*/g, '$1') // remove bold
+    .replace(/\*(.*?)\*/g, '$1')     // remove italics/single stars
     .replace(/^\s*[-*+]\s+/gm, '')   // remove bullets
     .replace(/\[(.*?)\]\(.*?\)/g, '$1') // remove links
     .replace(/`([^`]+)`/g, '$1');    // remove inline code
