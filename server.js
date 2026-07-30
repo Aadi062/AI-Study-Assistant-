@@ -822,9 +822,9 @@ app.post('/api/sessions/:sessionId/rename', (req, res) => {
 
 // Delete a session
 app.delete('/api/sessions/:sessionId', (req, res) => {
-  const deleted = deleteSession(req.params.sessionId);
-  if (deleted) {
-    return res.json({ success: true, message: 'Session deleted successfully' });
+  const success = deleteSession(req.params.sessionId);
+  if (success) {
+    return res.json({ success: true });
   } else {
     return res.status(404).json({ error: 'Session not found' });
   }

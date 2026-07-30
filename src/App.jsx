@@ -115,13 +115,16 @@ export default function App() {
     }
   };
 
-  const handleDeleteThread = async (sessId) => {
+  const handleDeleteThread = async (sessId, e) => {
+    if (e) e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this thread?")) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/sessions/${sessId}`, {
         method: 'DELETE'
       });
       if (res.ok) {
-        await loadSessions();
+        const targetId = sessId === currentSessionId ? null : currentSessionId;
+        await loadSessions(targetId);
       }
     } catch (err) {
       console.error("Error deleting thread:", err);
@@ -299,7 +302,7 @@ Could not connect to backend server or webhook endpoint.
                     loadSessionHistory(sessionItem.sessionId);
                   }}
                   onRename={(newName) => handleRenameThread(sessionItem.sessionId, newName)}
-                  onDelete={() => handleDeleteThread(sessionItem.sessionId)}
+                  onDelete={handleDeleteThread}
                 />
               ))}
             </div>
@@ -449,15 +452,10 @@ function ThreadItem({ session, isActive, onSelect, onRename, onDelete }) {
               <Edit2 size={10} />
             </button>
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                if (window.confirm(`Are you sure you want to delete "${session.name || 'this thread'}"?`)) {
-                  onDelete();
-                }
-              }}
+              onClick={(e) => onDelete(session.sessionId, e)}
               className="thread-action-btn"
+              style={{ color: '#f87171' }}
               title="Delete Chat"
-              style={{ color: 'var(--accent-coral-light)' }}
             >
               <Trash2 size={10} />
             </button>
