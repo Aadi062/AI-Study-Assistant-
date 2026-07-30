@@ -381,6 +381,15 @@ Could not connect to backend server or webhook endpoint.
             >
               <BarChart2 size={16} />
             </button>
+
+            <button 
+              onClick={() => setActiveTab('projects')}
+              className={`thread-action-btn ${activeTab === 'projects' ? 'active-icon-btn' : ''}`}
+              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Projects Workspace"
+            >
+              <Folder size={16} />
+            </button>
             
             <div style={{ flexGrow: 1 }}></div>
 
@@ -463,7 +472,11 @@ Could not connect to backend server or webhook endpoint.
               <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
                 <Globe size={14} /> Plugins
               </button>
-              <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
+              <button 
+                onClick={() => setActiveTab('projects')}
+                className={`nav-btn ${activeTab === 'projects' ? 'nav-btn-active' : ''}`}
+                style={{ height: '34px', padding: '8px 12px' }}
+              >
                 <Folder size={14} /> Projects
               </button>
               <button className="nav-btn" style={{ opacity: 0.6, cursor: 'not-allowed', height: '34px', padding: '8px 12px' }} disabled>
@@ -556,40 +569,69 @@ Could not connect to backend server or webhook endpoint.
         {/* Stage Content Area (Visualizer or Logs Dashboard) */}
         <div className="stage-content">
           {activeTab === 'visualizer' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
-              <WorkflowVisualizer 
-                activeStep={activeStep}
-                executingPath={executingPath}
-                selectedNode={selectedNode}
-                setSelectedNode={setSelectedNode}
-              />
-              
-              {/* Document Ingestion Admin Card */}
-              <div className="glass-panel" style={{ padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)', flexShrink: 0 }}>
-                <h3 style={{ fontSize: '11px', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
-                  <Sparkles size={13} style={{ color: 'var(--accent-purple-light)' }} />
-                  n8n Document Ingest (RAG Upload)
-                </h3>
-                <p style={{ fontSize: '9px', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>
-                  Paste syllabus contents below. Documents are split, embedded via Gemini, and indexed into the Qdrant database.
-                </p>
+            <WorkflowVisualizer 
+              activeStep={activeStep}
+              executingPath={executingPath}
+              selectedNode={selectedNode}
+              setSelectedNode={setSelectedNode}
+            />
+          ) : activeTab === 'projects' ? (
+            <div className="glass-panel animate-fade-in" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)', height: '100%', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Folder size={20} style={{ color: 'var(--accent-purple-light)' }} />
+                <div>
+                  <h2 style={{ fontSize: '16px', margin: 0, fontWeight: '700' }}>Projects Workspace & RAG Ingestion</h2>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>Manage curriculum files, index syllabus notes, and upload research text into the vector database.</p>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '4px 0' }}></div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: 'white' }}>Index New Textbook/Syllabus Document</span>
                 <textarea 
-                  placeholder="Paste syllabus, textbook chapters, or curriculum notes here..."
+                  placeholder="Paste syllabus guidelines, textbook chapters, or reference materials here to index them..."
                   value={ingestText}
                   onChange={(e) => setIngestText(e.target.value)}
-                  rows={3}
-                  style={{ width: '100%', padding: '8px', fontSize: '9px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-color)', resize: 'vertical', fontFamily: 'inherit', marginBottom: '8px' }}
+                  rows={8}
+                  style={{ width: '100%', padding: '12px', fontSize: '11px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-color)', resize: 'vertical', fontFamily: 'inherit', lineHeight: '1.5' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                   <button 
                     onClick={handleIngestDocument}
                     disabled={isIngesting || !ingestText.trim()}
                     className="mode-toggle-btn mode-toggle-mock"
-                    style={{ fontSize: '9px', padding: '6px 12px', opacity: (isIngesting || !ingestText.trim()) ? 0.6 : 1 }}
+                    style={{ fontSize: '11px', padding: '8px 16px', opacity: (isIngesting || !ingestText.trim()) ? 0.6 : 1 }}
                   >
-                    {isIngesting ? 'Indexing in Vector DB...' : 'Upload & Index'}
+                    {isIngesting ? 'Processing & Indexing Vector DB...' : 'Upload & Index to Vector DB'}
                   </button>
-                  {ingestStatus && <span style={{ fontSize: '9px', color: ingestStatus.includes('Error') ? 'var(--accent-coral-light)' : 'var(--accent-emerald-light)' }}>{ingestStatus}</span>}
+                  {ingestStatus && <span style={{ fontSize: '11px', color: ingestStatus.includes('Error') ? 'var(--accent-coral-light)' : 'var(--accent-emerald-light)' }}>{ingestStatus}</span>}
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '16px 0 8px 0' }}></div>
+
+              {/* Indexed Files List */}
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: 'white', display: 'block', marginBottom: '10px' }}>Active Curriculum Sources in Vector Database</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {[
+                    { name: 'Computer Networks - Course Curriculum Outline', size: '12.4 KB', chunks: '8 chunks' },
+                    { name: 'Photosynthesis Mechanism & Cellular Biology Guide', size: '24.1 KB', chunks: '15 chunks' },
+                    { name: 'Newtonian Physics & Laws of Mechanics', size: '8.8 KB', chunks: '5 chunks' }
+                  ].map((doc, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Folder size={12} style={{ color: 'var(--text-muted)' }} />
+                        <span style={{ fontSize: '11px', color: '#e2e8f0' }}>{doc.name}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '10px', color: 'var(--text-muted)' }}>
+                        <span>{doc.size}</span>
+                        <span>•</span>
+                        <span>{doc.chunks}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
