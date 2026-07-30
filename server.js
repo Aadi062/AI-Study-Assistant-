@@ -359,7 +359,7 @@ If the student asks for a study plan or schedule, generate a day-by-day structur
   }
 
   // ----------------------------------------------------
-  // MODE 3: MOCK SIMULATION (DuckDuckGo fallback & custom guides)
+          // MODE 3: MOCK SIMULATION (DuckDuckGo fallback & custom guides)
   // ----------------------------------------------------
   if (chatMode === 'mock') {
     const message = targetQuery;
@@ -379,6 +379,47 @@ Back: Active physical or chemical interactions that change output values based o
 
 Front: Why is understanding ${topic} important?
 Back: It helps explain natural observations, industrial systems, or logical structures in the real world.`;
+    } else if (queryLower.includes('chatgpt') || queryLower.includes('gemini') || queryLower.includes('feature') || queryLower.includes('function') || queryLower.includes('difference') || queryLower.includes('comparison')) {
+      assistantReply = `### ChatGPT vs Google Gemini: Features & Functions
+
+Here is a comparative overview of ChatGPT and Google Gemini:
+
+#### ChatGPT – Features & Functions
+*   **Natural language understanding**: Answers questions
+*   **Text generation**: Writes essays, emails, reports
+*   **Coding assistance**: Generates and debugs code
+*   **Image understanding**: Analyzes uploaded images
+*   **Voice conversation**: Supports voice chats
+*   **Web browsing (when enabled)**: Finds up-to-date information
+*   **File analysis**: Summarizes PDFs, Word, Excel, etc.
+*   **Memory (optional)**: Remembers user preferences across chats
+*   **Multilingual support**: Translates multiple languages
+*   **AI reasoning**: Solves math, logic, and programming problems
+
+#### Google Gemini – Features & Functions
+*   **Multimodal AI**: Understands text, images, audio, and video
+*   **Google Search integration**: Provides current information
+*   **Google Workspace integration**: Works with Gmail, Docs, Sheets, and Drive
+*   **Coding assistance**: Generates and explains code
+*   **Image analysis**: Describes and analyzes images
+*   **File analysis**: Summarizes documents and PDFs
+*   **Voice interaction**: Supports voice conversations
+*   **Translation**: Translates multiple languages
+*   **Long-context understanding**: Processes long documents
+*   **AI assistance**: Helps with writing, research, and brainstorming
+*   **Learning and productivity**: Support learning and productivity
+
+#### Key Difference
+*   **ChatGPT**: Best for writing, coding, reasoning, and AI conversations.
+*   **Gemini**: Best for users who rely on Google services (Gmail, Docs, Drive, Search) and want AI integrated with that ecosystem.
+
+### ChatGPT Details
+*   **Features**: Natural language understanding, Text generation, Code generation and debugging, Image understanding, Voice conversation, Web browsing (if enabled), File analysis, Multilingual support, Memory (optional), AI reasoning.
+*   **Functions**: Answer questions, Write essays, emails, and reports, Generate and debug code, Translate languages, Summarize documents, Solve mathematical problems, Analyze images, Create content (stories, poems, blogs), Help with research, Assist in learning and education.
+
+### Google Gemini Details
+*   **Features**: Multimodal AI (text, image, audio, video), Google Search integration, Google Workspace integration, Code generation, Image analysis, File analysis, Voice interaction, Long-context understanding, Multilingual support, AI reasoning.
+*   **Functions**: Answer questions, Generate text and content, Summarize documents, Translate languages, Generate and explain code, Analyze images, Assist with Gmail, Docs, Sheets, and Drive, Search current information, Help with research, Support learning and productivity.`;
     } else if (queryLower.includes('study plan') || queryLower.includes('schedule') || queryLower.includes('plan')) {
       const topicRaw = message.replace(/give me a|generate a|study plan for|schedule for|plan for/gi, '').trim();
       const topic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Computer Science';
