@@ -1138,6 +1138,25 @@ function ChartCard({ text }) {
 // 6. Image Generation Visualizer Card
 function ImageCard({ src, text }) {
   const cleanText = text.replace(/\[Image:\s*([^\]]+)\]/gi, '').trim();
+  const isCivic = src.includes('media__1785690174675');
+  const isRaceCars = src.includes('media__1785423992568');
+  
+  let imgStyle = { width: '100%', height: 'auto', display: 'block', borderRadius: '8px' };
+  let containerStyle = { width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' };
+  let subtitle = 'Custom Modified Sports Car Build';
+
+  if (isCivic) {
+    containerStyle = { ...containerStyle, height: '180px', position: 'relative' };
+    imgStyle = { position: 'absolute', left: '-10px', top: '-135px', width: '540px', height: 'auto', display: 'block' };
+    subtitle = 'Ultimate Track Build Speed & Performance';
+  } else if (isRaceCars) {
+    containerStyle = { ...containerStyle, height: '180px', position: 'relative' };
+    imgStyle = { position: 'absolute', left: '-515px', top: '-340px', width: '800px', height: 'auto', display: 'block' };
+    subtitle = 'Supra Mk5 / GT-R R35 Speed Circuit Build';
+  } else {
+    containerStyle = { ...containerStyle, height: 'auto' };
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
       {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
@@ -1159,31 +1178,11 @@ function ImageCard({ src, text }) {
         <span style={{ fontSize: '8px', color: 'var(--accent-purple-light)', fontWeight: '800', textTransform: 'uppercase', alignSelf: 'flex-start' }}>
           🖼️ AI Generated Illustration
         </span>
-        <div 
-          style={{ 
-            width: '100%', 
-            height: '180px', 
-            borderRadius: '12px', 
-            overflow: 'hidden', 
-            position: 'relative',
-            border: '1px solid rgba(255,255,255,0.06)'
-          }}
-        >
-          <img 
-            src={src} 
-            alt="AI Generated Illustration"
-            style={{ 
-              position: 'absolute',
-              left: '-10px', 
-              top: '-135px', 
-              width: '540px', 
-              height: 'auto',
-              display: 'block'
-            }} 
-          />
+        <div style={containerStyle}>
+          <img src={src} alt="AI Generated Illustration" style={imgStyle} />
         </div>
         <span style={{ fontSize: '8.5px', color: 'var(--text-muted)' }}>
-          Ultimate Track Build Speed & Performance
+          {subtitle}
         </span>
       </div>
     </div>

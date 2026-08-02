@@ -790,7 +790,13 @@ ${ddgData.Abstract}
     } else if (detectedIntent === 'Data Visualization') {
       assistantReply = `Here is the SVG data visualization graph for **${activeTopic}**.\n\n[Chart]\nLabels: Monday,Tuesday,Wednesday,Thursday,Friday\nValues: 30,55,45,85,60`;
     } else if (detectedIntent === 'Image Generation') {
-      assistantReply = `Here is the generated image illustration for **${activeTopic}**.\n\n[Image: media__1785690174675.png]`;
+      if (queryLower.includes('modified')) {
+        assistantReply = `Here is the generated image illustration for a **Modified Sports Car**.\n\n[Image: modified_car.jpg]`;
+      } else if (queryLower.includes('race')) {
+        assistantReply = `Here is the generated image illustration for a **Race Car**.\n\n[Image: media__1785423992568.png]`; // multi-car grid asset containing race car illustration
+      } else {
+        assistantReply = `Here is the generated image illustration for **${activeTopic}**.\n\n[Image: media__1785690174675.png]`;
+      }
     }
 
     if (isDeepResearch) {
