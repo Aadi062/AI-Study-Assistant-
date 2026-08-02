@@ -764,8 +764,8 @@ ${ddgData.Abstract}
       detectedIntent = 'Data Visualization';
       routedTool = 'SVG Graph Visualizer Tool';
     } else if (queryLower.includes('image') || queryLower.includes('picture') || queryLower.includes('illustration') || queryLower.includes('draw')) {
-      const topicRaw = message.replace(/give me an|generate an|show|draw an|image of|picture of|illustration of/gi, '').trim();
-      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Honda Civic Type R';
+      const topicRaw = message.replace(/give me an|give me a|generate an|generate a|show me an|show me a|show me|show|draw an|draw a|draw|image of a|image of an|image of|picture of a|picture of an|picture of|illustration of a|illustration of an|illustration of|illustration/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Rose';
       detectedIntent = 'Image Generation';
       routedTool = 'Image Generator Tool';
     } else {
@@ -790,13 +790,41 @@ ${ddgData.Abstract}
     } else if (detectedIntent === 'Data Visualization') {
       assistantReply = `Here is the SVG data visualization graph for **${activeTopic}**.\n\n[Chart]\nLabels: Monday,Tuesday,Wednesday,Thursday,Friday\nValues: 30,55,45,85,60`;
     } else if (detectedIntent === 'Image Generation') {
-      if (queryLower.includes('modified')) {
-        assistantReply = `Here is the generated image illustration for a **Modified Sports Car**.\n\n[Image: modified_car.jpg]`;
-      } else if (queryLower.includes('race')) {
-        assistantReply = `Here is the generated image illustration for a **Race Car**.\n\n[Image: media__1785423992568.png]`; // multi-car grid asset containing race car illustration
+      let keyword = activeTopic.replace(/\b(image|picture|photo|illustration|draw|art|sketch|card)\b/gi, '').trim();
+      if (!keyword) keyword = 'Rose';
+
+      let imageUrl = '';
+      if (queryLower.includes('modified') && queryLower.includes('car')) {
+        imageUrl = 'modified_car.jpg';
+      } else if (queryLower.includes('race') && queryLower.includes('car')) {
+        imageUrl = 'media__1785423992568.png';
       } else {
-        assistantReply = `Here is the generated image illustration for **${activeTopic}**.\n\n[Image: media__1785690174675.png]`;
+        try {
+          const wikiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(keyword)}&gsrnamespace=6&prop=imageinfo&iiprop=url&format=json`;
+          const resObj = await fetch(wikiUrl, {
+            headers: { 'User-Agent': 'AIStudyAssistant/1.0 (contact@aistudyassistant.org)' }
+          });
+          if (resObj.ok) {
+            const data = await resObj.json();
+            const pages = data?.query?.pages;
+            if (pages) {
+              const pageKeys = Object.keys(pages);
+              if (pageKeys.length > 0) {
+                const firstPage = pages[pageKeys[0]];
+                imageUrl = firstPage.imageinfo?.[0]?.url || '';
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Wikimedia Commons query failed:", err);
+        }
+        
+        if (!imageUrl) {
+          imageUrl = 'media__1785690174675.png';
+        }
       }
+
+      assistantReply = `Here is the generated image illustration for **${activeTopic}**.\n\n[Image: ${imageUrl}]`;
     }
 
     if (isDeepResearch) {

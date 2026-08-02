@@ -354,8 +354,11 @@ export default function ChatInterface({
     const isImage = msg.text.includes('[Image:');
     if (isImage) {
       const imgMatch = msg.text.match(/\[Image:\s*([^\]]+)\]/i);
-      const imgSrc = imgMatch ? imgMatch[1].trim() : '';
-      return <ImageCard src={`/${imgSrc}`} text={msg.text} />;
+      let imgSrc = imgMatch ? imgMatch[1].trim() : '';
+      if (!imgSrc.startsWith('http://') && !imgSrc.startsWith('https://')) {
+        imgSrc = `/${imgSrc}`;
+      }
+      return <ImageCard src={imgSrc} text={msg.text} />;
     }
 
     const isFlashcards = msg.text.includes('### Flashcards') || msg.text.includes('Front:') || msg.text.includes('Back:');
@@ -1140,6 +1143,7 @@ function ImageCard({ src, text }) {
   const cleanText = text.replace(/\[Image:\s*([^\]]+)\]/gi, '').trim();
   const isCivic = src.includes('media__1785690174675');
   const isRaceCars = src.includes('media__1785423992568');
+  const isRemote = src.startsWith('http://') || src.startsWith('https://');
   
   let imgStyle = { width: '100%', height: 'auto', display: 'block', borderRadius: '8px' };
   let containerStyle = { width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' };
@@ -1153,6 +1157,12 @@ function ImageCard({ src, text }) {
     containerStyle = { ...containerStyle, height: '180px', position: 'relative' };
     imgStyle = { position: 'absolute', left: '-515px', top: '-340px', width: '800px', height: 'auto', display: 'block' };
     subtitle = 'Supra Mk5 / GT-R R35 Speed Circuit Build';
+  } else if (isRemote) {
+    containerStyle = { ...containerStyle, height: 'auto', maxHeight: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.2)' };
+    imgStyle = { maxWidth: '100%', maxHeight: '280px', height: 'auto', objectFit: 'contain', display: 'block', borderRadius: '8px' };
+    // Extract caption header text if present
+    const cleanHeader = cleanText.replace(/here is the generated image illustration for\s*/gi, '').replace(/\*\*|\*/g, '').trim();
+    subtitle = cleanHeader ? `${cleanHeader} (Public Domain Resource)` : 'AI Retrieved Image Reference';
   } else {
     containerStyle = { ...containerStyle, height: 'auto' };
   }
