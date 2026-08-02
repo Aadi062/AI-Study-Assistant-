@@ -212,11 +212,18 @@ app.post('/api/chat', async (req, res) => {
       } else if (learningMode === 'feynman') {
         stylePrompt = `\nAdditional Rule: Feynman Technique Mode is active. First, ask the student to explain the concept in their own simple words as if teaching it to a child. Once they respond, review their explanation, identify conceptual gaps, grade it out of 100 with a label 'Feynman score: [Score]/100', and write a constructive critique.`;
       }
+      
+      let routingPrompt = `\nAdditional Rule: You have Intent Recognition. Depending on what the student types:
+      - If they ask for a presentation, slides, or ppt, output a slide deck format starting with the line "[Presentation]" followed by "Slide 1: ... \\n - ...".
+      - If they ask for a spreadsheet, excel, or csv, output a CSV formatted table starting with "[Spreadsheet]" followed by header rows.
+      - If they ask for a roadmap or timeline, output "[Roadmap]" followed by checklist items like "Task Name|status".
+      - If they ask for a database schema, design, or erd, output "[ERD]" followed by "Table: ... | PK: ...".
+      - If they ask for a chart, graph, or plot, output "[Chart]" followed by labels and values.`;
 
       const systemInstruction = {
         role: 'user',
         parts: [{
-          text: `You are the AI Study Assistant n8n agent. ${groundingInstruction}Your job is to provide personalized learning, answer student doubts instantly, generate practice quizzes, study plans, or flashcards. ${deepPrompt}${guidedPrompt}${stylePrompt}
+          text: `You are the AI Study Assistant n8n agent. ${groundingInstruction}Your job is to provide personalized learning, answer student doubts instantly, generate practice quizzes, study plans, or flashcards. ${deepPrompt}${guidedPrompt}${stylePrompt}${routingPrompt}
 If the student asks to be tested or wants practice questions, you MUST generate a short multiple-choice quiz in this exact markdown format:
 
 ### Practice Quiz: [Topic]
@@ -713,26 +720,71 @@ ${ddgData.Abstract}
 
     // Save mock session details
     let activeTopic = 'Academic Concept';
+    let detectedIntent = 'General Question';
+    let routedTool = 'AI Explainer';
+
     if (queryLower.includes('flashcard') || queryLower.includes('flash card')) {
       const topicRaw = message.replace(/give me|generate|flashcards on|flash cards on|cards on/gi, '').trim();
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Photosynthesis';
+      detectedIntent = 'Flashcard Generation';
+      routedTool = 'Flashcard Generator Tool';
     } else if (queryLower.includes('study plan') || queryLower.includes('schedule') || queryLower.includes('plan')) {
       const topicRaw = message.replace(/give me a|generate a|study plan for|schedule for|plan for/gi, '').trim();
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Computer Science';
+      detectedIntent = 'Planning & Roadmap';
+      routedTool = 'Project Planning Tool';
     } else if (queryLower.includes('quiz') || queryLower.includes('test') || queryLower.includes('question')) {
       const topicRaw = message.replace(/give me a|generate a|quiz on|test on|questions on|practice/gi, '').trim();
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Cell Biology';
+      detectedIntent = 'Quiz Generation';
+      routedTool = 'Quiz Generator Tool';
+    } else if (queryLower.includes('ppt') || queryLower.includes('presentation') || queryLower.includes('slide')) {
+      const topicRaw = message.replace(/give me a|generate a|ppt on|presentation on|slides on/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Computer Networks';
+      detectedIntent = 'Presentation Generation';
+      routedTool = 'PowerPoint Generator Tool';
+    } else if (queryLower.includes('excel') || queryLower.includes('spreadsheet') || queryLower.includes('csv') || queryLower.includes('sheet')) {
+      const topicRaw = message.replace(/give me an|generate an|excel on|spreadsheet on|csv on/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Student Grades';
+      detectedIntent = 'Spreadsheet Generation';
+      routedTool = 'Spreadsheet Excel Tool';
+    } else if (queryLower.includes('roadmap') || queryLower.includes('timeline')) {
+      const topicRaw = message.replace(/give me a|generate a|roadmap on|timeline for/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Database Learning Path';
+      detectedIntent = 'Mind Map & Roadmap';
+      routedTool = 'Roadmap Planner Tool';
+    } else if (queryLower.includes('erd') || queryLower.includes('database schema') || queryLower.includes('schema')) {
+      const topicRaw = message.replace(/give me an|generate an|erd for|database schema for|schema for/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'E-Commerce Database';
+      detectedIntent = 'Database Modeling';
+      routedTool = 'Database Designer Tool';
+    } else if (queryLower.includes('chart') || queryLower.includes('graph') || queryLower.includes('plot')) {
+      const topicRaw = message.replace(/give me a|generate a|chart of|graph of|plot of/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Weekly Study Progress';
+      detectedIntent = 'Data Visualization';
+      routedTool = 'SVG Graph Visualizer Tool';
     } else {
       const topicRaw = message.replace(/what is|explain|tell me about|how does|define|who is|who was/gi, '').trim();
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Academic Concept';
     }
 
     let agentLogs = [
-      { agent: "Planner Agent", action: "Identified Mock simulation request. Delegating task to local classifier.", status: "completed" },
-      { agent: "Researcher Agent", action: assistantReply.includes('DuckDuckGo') ? "Queried external web index (DuckDuckGo) for missing grounding facts." : "Parsed local curriculum guidelines cached in database.", status: "completed" },
-      { agent: "Writer Agent", action: "Synthesized curriculum definitions and generated study cards.", status: "completed" }
+      { agent: "Intent Classifier Agent", action: `Analyzed query. Classified intent: "${detectedIntent}". Routed to "${routedTool}".`, status: "completed" },
+      { agent: routedTool, action: `Invoked capability: executed context parameters compilation for "${activeTopic}".`, status: "completed" }
     ];
     let sources = assistantReply.includes('DuckDuckGo') ? ["DuckDuckGo abstract search results"] : ["Curriculum guidelines profile cache"];
+
+    if (detectedIntent === 'Presentation Generation') {
+      assistantReply = `Here is a custom presentation slide deck on **${activeTopic}**.\n\n[Presentation]\nSlide 1: Introduction to ${activeTopic}\n- Core definition and history\n- Fundamental building block parameters\n\nSlide 2: Key Working Mechanisms\n- Dynamic action operations\n- Integration across curriculum standards\n\nSlide 3: Summary & Real-World Use Cases\n- Applied workflows and performance checks\n- Summary notes and index checklists`;
+    } else if (detectedIntent === 'Spreadsheet Generation') {
+      assistantReply = `Here is a structured spreadsheet grid representing **${activeTopic}**.\n\n[Spreadsheet]\nTopic,Description,Priority\n${activeTopic} Basics,Introductory concepts and syllabus,High\nAdvanced Applications,Production implementations,Medium\nReview Quiz,Practice evaluation checklist,High`;
+    } else if (detectedIntent === 'Mind Map & Roadmap') {
+      assistantReply = `Here is an interactive study roadmap for **${activeTopic}**.\n\n[Roadmap]\nTask 1: Foundations of ${activeTopic}|done\nTask 2: Advanced architectural patterns|pending\nTask 3: Socratic discussion checks|pending`;
+    } else if (detectedIntent === 'Database Modeling') {
+      assistantReply = `Here is the visual ERD schema design for **${activeTopic}**.\n\n[ERD]\nTable: Users | PK: UserID | Fields: Name, Email\nTable: Profiles | PK: ProfileID | Fields: Bio, FK: UserID\nTable: Activities | PK: ActivityID | Fields: Action, FK: UserID`;
+    } else if (detectedIntent === 'Data Visualization') {
+      assistantReply = `Here is the SVG data visualization graph for **${activeTopic}**.\n\n[Chart]\nLabels: Monday,Tuesday,Wednesday,Thursday,Friday\nValues: 30,55,45,85,60`;
+    }
 
     if (isDeepResearch) {
       agentLogs = [

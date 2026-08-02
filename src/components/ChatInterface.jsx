@@ -336,6 +336,21 @@ export default function ChatInterface({
       return <MermaidParser text={msg.text} />;
     }
 
+    const isPresentation = msg.text.includes('[Presentation]');
+    if (isPresentation) return <PresentationCard text={msg.text} />;
+
+    const isSpreadsheet = msg.text.includes('[Spreadsheet]');
+    if (isSpreadsheet) return <SpreadsheetCard text={msg.text} />;
+
+    const isRoadmap = msg.text.includes('[Roadmap]');
+    if (isRoadmap) return <RoadmapCard text={msg.text} />;
+
+    const isErd = msg.text.includes('[ERD]');
+    if (isErd) return <ErdCard text={msg.text} />;
+
+    const isChart = msg.text.includes('[Chart]');
+    if (isChart) return <ChartCard text={msg.text} />;
+
     const isFlashcards = msg.text.includes('### Flashcards') || msg.text.includes('Front:') || msg.text.includes('Back:');
     
     if (isFlashcards) {
@@ -876,6 +891,238 @@ function MermaidParser({ text }) {
         <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>
           💡 Click sub-nodes to inspect topic relations
         </span>
+      </div>
+    </div>
+  );
+}
+
+// 1. Presentation Slide Deck Carousel Card
+function PresentationCard({ text }) {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const cleanText = text.replace(/\[Presentation\][\s\S]*$/i, '').trim();
+  const slidesBlock = text.split('[Presentation]')[1] || '';
+  const slideRegex = /Slide\s+\d+:\s*([^\n]+)\n((?:-\s*[^\n]+\n?)*)/gi;
+  const slides = [];
+  let match;
+  while ((match = slideRegex.exec(slidesBlock)) !== null) {
+    const title = match[1].trim();
+    const bullets = match[2].split('\n').map(b => b.replace(/^-\s*/, '').trim()).filter(b => b !== '');
+    slides.push({ title, bullets });
+  }
+
+  if (slides.length === 0) {
+    return <p style={{ fontSize: '12px' }}>{text}</p>;
+  }
+
+  const nextSlide = () => setActiveSlide(prev => (prev + 1) % slides.length);
+  const prevSlide = () => setActiveSlide(prev => (prev - 1 + slides.length) % slides.length);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      
+      <div className="glass-panel" style={{ background: 'rgba(0, 0, 0, 0.4)', border: '1px solid var(--border-color)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', height: '165px', justifyContent: 'space-between', position: 'relative' }}>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <span style={{ fontSize: '8px', color: 'var(--accent-purple-light)', fontWeight: '800', textTransform: 'uppercase' }}>💻 Slide Presentation</span>
+            <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Slide {activeSlide + 1} of {slides.length}</span>
+          </div>
+
+          <h4 style={{ fontSize: '12px', fontWeight: '800', color: 'white', margin: '0 0 10px 0' }}>{slides[activeSlide]?.title}</h4>
+          
+          <ul style={{ paddingLeft: '14px', margin: 0, fontSize: '10.5px', color: 'rgba(255,255,255,0.85)', lineHeight: '1.6' }}>
+            {slides[activeSlide]?.bullets.map((bullet, idx) => (
+              <li key={idx} style={{ marginBottom: '4px' }}>{bullet}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: 'auto' }}>
+          <button type="button" onClick={prevSlide} style={{ border: 'none', background: 'rgba(255,255,255,0.06)', color: 'white', padding: '4px 8px', borderRadius: '6px', fontSize: '9px', cursor: 'pointer' }}>Prev</button>
+          <button type="button" onClick={nextSlide} style={{ border: 'none', background: 'rgba(255,255,255,0.06)', color: 'white', padding: '4px 8px', borderRadius: '6px', fontSize: '9px', cursor: 'pointer' }}>Next</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 2. Spreadsheet Excel Grid Card
+function SpreadsheetCard({ text }) {
+  const cleanText = text.replace(/\[Spreadsheet\][\s\S]*$/i, '').trim();
+  const csvBlock = text.split('[Spreadsheet]')[1] || '';
+  const lines = csvBlock.split('\n').map(l => l.trim()).filter(l => l !== '');
+  
+  if (lines.length === 0) {
+    return <p style={{ fontSize: '12px' }}>{text}</p>;
+  }
+
+  const headers = lines[0].split(',');
+  const rows = lines.slice(1).map(row => row.split(','));
+
+  const handleCopyCsv = () => {
+    navigator.clipboard.writeText(csvBlock.trim());
+    alert("CSV copied to clipboard!");
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      
+      <div className="glass-panel" style={{ background: 'rgba(0, 0, 0, 0.4)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span style={{ fontSize: '8px', color: 'var(--accent-emerald-light)', fontWeight: '800', textTransform: 'uppercase' }}>📊 Spreadsheet Workbook</span>
+          <button type="button" onClick={handleCopyCsv} style={{ background: 'none', border: 'none', color: 'var(--accent-emerald-light)', cursor: 'pointer', fontSize: '8.5px', fontWeight: 'bold' }}>Copy CSV</button>
+        </div>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
+                {headers.map((h, i) => <th key={i} style={{ padding: '6px' }}>{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rIdx) => (
+                <tr key={rIdx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.9)' }}>
+                  {row.map((cell, cIdx) => <td key={cIdx} style={{ padding: '6px' }}>{cell}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 3. Roadmap Planner Card
+function RoadmapCard({ text }) {
+  const cleanText = text.replace(/\[Roadmap\][\s\S]*$/i, '').trim();
+  const listBlock = text.split('[Roadmap]')[1] || '';
+  const items = listBlock.split('\n').map(l => l.trim()).filter(l => l !== '').map(l => {
+    const parts = l.split('|');
+    return { name: parts[0], done: parts[1] === 'done' };
+  });
+
+  if (items.length === 0) {
+    return <p style={{ fontSize: '12px' }}>{text}</p>;
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      
+      <div className="glass-panel" style={{ background: 'rgba(0, 0, 0, 0.4)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px' }}>
+        <span style={{ fontSize: '8px', color: 'var(--accent-purple-light)', fontWeight: '800', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>📈 Interactive Learning Roadmap</span>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
+          {items.map((item, idx) => (
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: item.done ? 'var(--accent-purple)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: 'white', fontWeight: 'bold' }}>
+                {item.done ? '✓' : idx + 1}
+              </div>
+              <span style={{ fontSize: '10.5px', color: item.done ? 'var(--text-muted)' : '#e2e8f0', textDecoration: item.done ? 'line-through' : 'none' }}>{item.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 4. ERD Schema Card
+function ErdCard({ text }) {
+  const cleanText = text.replace(/\[ERD\][\s\S]*$/i, '').trim();
+  const erdBlock = text.split('[ERD]')[1] || '';
+  const tables = erdBlock.split('\n').map(l => l.trim()).filter(l => l !== '').map(l => {
+    const nameMatch = l.match(/Table:\s*([^\s|]+)/i);
+    const pkMatch = l.match(/PK:\s*([^\s|]+)/i);
+    const fieldsMatch = l.match(/Fields:\s*(.*)/i);
+    return {
+      name: nameMatch ? nameMatch[1] : 'Table',
+      pk: pkMatch ? pkMatch[1] : 'id',
+      fields: fieldsMatch ? fieldsMatch[1].split(',').map(f => f.trim()) : []
+    };
+  });
+
+  if (tables.length === 0) {
+    return <p style={{ fontSize: '12px' }}>{text}</p>;
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      
+      <div className="glass-panel" style={{ background: 'rgba(0, 0, 0, 0.4)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <span style={{ fontSize: '8px', color: '#f59e0b', fontWeight: '800', textTransform: 'uppercase' }}>🗄️ Database ERD Schema</span>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {tables.map((table, idx) => (
+            <div key={idx} className="glass-panel" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '8px', fontSize: '9px', textAlign: 'left' }}>
+              <div style={{ fontWeight: 'bold', color: 'white', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '4px', marginBottom: '6px' }}>🔑 {table.name}</div>
+              <div style={{ color: '#f59e0b', fontWeight: '600', marginBottom: '3px' }}>🔑 {table.pk} (PK)</div>
+              {table.fields.map((f, fIdx) => (
+                <div key={fIdx} style={{ color: 'var(--text-secondary)' }}>• {f}</div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 5. Chart Visualizer Card
+function ChartCard({ text }) {
+  const cleanText = text.replace(/\[Chart\][\s\S]*$/i, '').trim();
+  const chartBlock = text.split('[Chart]')[1] || '';
+  const labelLine = chartBlock.split('\n').find(l => l.includes('Labels:')) || '';
+  const valLine = chartBlock.split('\n').find(l => l.includes('Values:')) || '';
+  
+  const labels = labelLine.replace(/Labels:\s*/i, '').split(',').map(l => l.trim());
+  const values = valLine.replace(/Values:\s*/i, '').split(',').map(v => parseInt(v.trim()) || 0);
+
+  if (labels.length === 0 || values.length === 0) {
+    return <p style={{ fontSize: '12px' }}>{text}</p>;
+  }
+
+  const maxValue = Math.max(...values, 100);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      
+      <div className="glass-panel" style={{ background: 'rgba(0, 0, 0, 0.4)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+        <span style={{ fontSize: '8px', color: 'var(--accent-purple-light)', fontWeight: '800', textTransform: 'uppercase', alignSelf: 'flex-start' }}>📈 Data Graph Visualizer</span>
+        
+        <svg width="100%" height="110" viewBox="0 0 280 110" style={{ overflow: 'visible' }}>
+          {values.map((val, idx) => {
+            const barHeight = (val / maxValue) * 80;
+            const xPos = 30 + (idx * 50);
+            return (
+              <g key={idx}>
+                <rect 
+                  x={xPos - 12} 
+                  y={90 - barHeight} 
+                  width="24" 
+                  height={barHeight} 
+                  rx="4" 
+                  fill="url(#barGrad)"
+                  style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
+                  onClick={() => alert(`Value: ${val}`)}
+                />
+                <text x={xPos} y={85 - barHeight} fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">{val}</text>
+                <text x={xPos} y="104" fill="var(--text-muted)" fontSize="7" textAnchor="middle">{labels[idx]}</text>
+              </g>
+            );
+          })}
+          <defs>
+            <linearGradient id="barGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="var(--accent-purple)" />
+              <stop offset="100%" stopColor="#6366f1" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
     </div>
   );

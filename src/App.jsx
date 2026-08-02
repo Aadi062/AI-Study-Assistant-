@@ -679,10 +679,39 @@ Could not connect to backend server or webhook endpoint.
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Welcome to the AI Study Assistant! Here are some features to help you get started:</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px', textAlign: 'left' }}>
-                <div>💡 <strong>Interactive Quiz</strong>: Type <em>"give me a quiz on photosynthesis"</em> to get an interactive, grading quiz card directly in chat!</div>
-                <div>🎴 <strong>Study Flashcards</strong>: Type <em>"create flashcards for computer networks"</em> to get double-sided flip study cards!</div>
-                <div>📂 <strong>RAG Projects</strong>: Paste syllabus texts in the Projects tab to make the AI query local textbooks.</div>
-                <div>🔌 <strong>Plugins Store</strong>: Install active widgets like GitHub or Notion to connect your student workspaces.</div>
+                <div>💡 <strong>Interactive Quiz</strong>: Type <em>"give me a quiz on photosynthesis"</em> to get a grading quiz card.</div>
+                <div>🎴 <strong>Study Flashcards</strong>: Type <em>"create flashcards for computer networks"</em> to get double-sided flip study cards.</div>
+                <div>📂 <strong>RAG Projects</strong>: Scope documents in the Projects tab to make the AI query local reference books.</div>
+              </div>
+
+              <div style={{ marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+                <span style={{ fontSize: '9.5px', textTransform: 'uppercase', color: 'var(--accent-purple-light)', fontWeight: '700', display: 'block', marginBottom: '8px', textAlign: 'left' }}>🤖 Intent recognition routing guide</span>
+                <div style={{ maxHeight: '130px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                        <th style={{ padding: '4px' }}>Query includes</th>
+                        <th style={{ padding: '4px' }}>AI action</th>
+                        <th style={{ padding: '4px' }}>Routing process</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { trigger: 'ppt / presentation', action: 'Generate Slide Deck', process: 'Presentation Tool' },
+                        { trigger: 'excel / spreadsheet', action: 'Create Data Grid', process: 'Spreadsheet Excel Tool' },
+                        { trigger: 'roadmap / timeline', action: 'Draw Timeline Checklist', process: 'Roadmap Planner' },
+                        { trigger: 'erd / schema', action: 'Model Database ERD', process: 'Designer Schema Tool' },
+                        { trigger: 'chart / graph', action: 'Render SVG Graph', process: 'Visualization Tool' }
+                      ].map((row, rIdx) => (
+                        <tr key={rIdx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                          <td style={{ padding: '4px', fontWeight: 'bold', color: 'white' }}>{row.trigger}</td>
+                          <td style={{ padding: '4px', color: 'var(--text-secondary)' }}>{row.action}</td>
+                          <td style={{ padding: '4px', color: 'var(--accent-purple-light)' }}>{row.process}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
