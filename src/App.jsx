@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ChatInterface from './components/ChatInterface';
 import WorkflowVisualizer from './components/WorkflowVisualizer';
 import LogsDashboard from './components/LogsDashboard';
-import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X, Trash2, SquarePen, Image, BookOpen, Globe, Folder, Code, MoreHorizontal, Search, PanelLeftClose, History, FileUp, Sun, Zap, HelpCircle, Mic, Paperclip } from 'lucide-react';
+import { BarChart2, Cpu, Sparkles, MessageSquare, Plus, Edit2, Check, X, Trash2, SquarePen, Image, BookOpen, Globe, Folder, Code, MoreHorizontal, Search, PanelLeftClose, History, FileUp, Sun, Zap, HelpCircle, Mic, Paperclip, LogOut } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('visualizer');
@@ -43,6 +43,12 @@ export default function App() {
   const [isCanvasOpen, setIsCanvasOpen] = useState(false);
   const [canvasTitle, setCanvasTitle] = useState('Untitled Document');
   const [canvasContent, setCanvasContent] = useState('');
+  const [currentUser, setCurrentUser] = useState(JSON.parse(localStorage.getItem('current_student_user') || 'null'));
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
+  const [authUsername, setAuthUsername] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [learningMode, setLearningMode] = useState('standard'); // 'standard' | 'socratic' | 'feynman'
+  const [selectedSubject, setSelectedSubject] = useState('All Subjects');
   const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
   React.useEffect(() => {
@@ -273,7 +279,8 @@ export default function App() {
           activeVersion,
           apiKey: localStorage.getItem('gemini_api_key'),
           isDeepResearch: options.isDeepResearch || false,
-          isGuidedLearning: options.isGuidedLearning || false
+          isGuidedLearning: options.isGuidedLearning || false,
+          learningMode: learningMode
         })
       });
 
@@ -346,6 +353,141 @@ Could not connect to backend server or webhook endpoint.
     } finally {
       setIsIngesting(false);
     }
+  };
+
+  const renderLoginScreen = () => {
+    const handleAuthSubmit = (e) => {
+      e.preventDefault();
+      if (!authUsername.trim()) {
+        alert("Please enter a username");
+        return;
+      }
+      const user = { username: authUsername.trim(), isGuest: false };
+      setCurrentUser(user);
+      localStorage.setItem('current_student_user', JSON.stringify(user));
+    };
+
+    const handleGuestLogin = () => {
+      const user = { username: 'Guest Student', isGuest: true };
+      setCurrentUser(user);
+      localStorage.setItem('current_student_user', JSON.stringify(user));
+    };
+
+    return (
+      <div 
+        style={{ 
+          width: '100vw', 
+          height: '100vh', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          background: 'radial-gradient(circle at top right, rgba(168, 85, 247, 0.15) 0%, rgba(15, 18, 36, 1) 70%)',
+          color: 'white',
+          fontFamily: 'var(--font-sans)',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: 100000
+        }}
+      >
+        <div 
+          className="glass-panel animate-fade-in" 
+          style={{ 
+            width: '100%', 
+            maxWidth: '380px', 
+            padding: '40px 32px', 
+            borderRadius: '24px', 
+            border: '1px solid rgba(255,255,255,0.08)', 
+            background: 'rgba(15, 18, 36, 0.95)', 
+            boxShadow: '0 30px 60px rgba(0,0,0,0.6), 0 0 50px rgba(168, 85, 247, 0.1)',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px'
+          }}
+        >
+          {/* Brand Logo */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <div 
+              style={{ 
+                background: 'linear-gradient(135deg, var(--accent-purple) 0%, #6366f1 100%)', 
+                width: '56px', 
+                height: '56px', 
+                borderRadius: '16px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                color: 'white', 
+                boxShadow: '0 0 25px rgba(168,85,247,0.4)' 
+              }}
+            >
+              <Sparkles size={28} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: '800', margin: '4px 0' }}>Study Console</h2>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Advanced AI Companion for Syllabus Grounding</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Username / Email</label>
+              <input 
+                type="text" 
+                value={authUsername}
+                onChange={(e) => setAuthUsername(e.target.value)}
+                placeholder="e.g. student001"
+                required
+                style={{ width: '100%', padding: '12px 14px', fontSize: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '10px', color: 'white', outline: 'none' }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Password</label>
+              <input 
+                type="password" 
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                style={{ width: '100%', padding: '12px 14px', fontSize: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '10px', color: 'white', outline: 'none' }}
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              className="mode-toggle-btn mode-toggle-mock" 
+              style={{ width: '100%', padding: '12px', background: 'white', color: 'black', fontWeight: '700', borderRadius: '10px', cursor: 'pointer', marginTop: '4px' }}
+            >
+              {authMode === 'login' ? 'Sign In' : 'Sign Up'}
+            </button>
+          </form>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <span>{authMode === 'login' ? "Don't have an account?" : 'Already have an account?'}</span>
+              <button 
+                type="button" 
+                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                style={{ background: 'none', border: 'none', color: 'var(--accent-purple-light)', fontWeight: '700', cursor: 'pointer', padding: 0 }}
+              >
+                {authMode === 'login' ? 'Sign Up' : 'Sign In'}
+              </button>
+            </div>
+
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', margin: '8px 0' }}></div>
+
+            <button 
+              type="button" 
+              onClick={handleGuestLogin}
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: 'white', padding: '10px', borderRadius: '10px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}
+            >
+              Continue as Guest
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderSettingsModals = () => {
@@ -548,6 +690,10 @@ Could not connect to backend server or webhook endpoint.
       </div>
     );
   };
+
+  if (!currentUser) {
+    return renderLoginScreen();
+  }
 
   return (
     <div className="app-container">
@@ -825,6 +971,44 @@ Could not connect to backend server or webhook endpoint.
           </div>
         )}
 
+        {/* User Profile Info & Logout */}
+        <div style={{ padding: isSidebarCollapsed ? '12px 0' : '12px 16px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: isSidebarCollapsed ? 'column' : 'row', alignItems: 'center', gap: '10px', marginTop: 'auto' }}>
+          <div 
+            style={{ 
+              width: '28px', 
+              height: '28px', 
+              borderRadius: '50%', 
+              background: 'linear-gradient(135deg, var(--accent-purple) 0%, #6366f1 100%)', 
+              color: 'white', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '11px', 
+              fontWeight: 'bold',
+              boxShadow: '0 0 10px rgba(168,85,247,0.3)'
+            }}
+            title={currentUser?.username}
+          >
+            {currentUser?.username?.substring(0, 2).toUpperCase() || 'ST'}
+          </div>
+          {!isSidebarCollapsed && (
+            <div style={{ flex: 1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontSize: '11px', fontWeight: '700', color: 'white', textAlign: 'left' }}>
+              {currentUser?.username}
+            </div>
+          )}
+          <button 
+            type="button"
+            onClick={() => {
+              setCurrentUser(null);
+              localStorage.removeItem('current_student_user');
+            }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }}
+            title="Log Out"
+          >
+            <LogOut size={isSidebarCollapsed ? 12 : 13} />
+          </button>
+        </div>
+
         {/* Footer details */}
         {!isSidebarCollapsed && (
           <div className="sidebar-footer">
@@ -853,6 +1037,8 @@ Could not connect to backend server or webhook endpoint.
           setCanvasTitle={setCanvasTitle}
           canvasContent={canvasContent}
           setCanvasContent={setCanvasContent}
+          learningMode={learningMode}
+          setLearningMode={setLearningMode}
         />
 
         {/* Stage Content Area (Visualizer or Logs Dashboard) or Canvas editor */}
@@ -1021,10 +1207,19 @@ Could not connect to backend server or webhook endpoint.
                 </div>
                 {/* Search & Actions */}
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <select 
+                    value={selectedSubject} 
+                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white', outline: 'none', cursor: 'pointer' }}
+                  >
+                    {['All Subjects', 'Computer Networks', 'Database Systems', 'Biology'].map(sub => (
+                      <option key={sub} value={sub} style={{ background: '#0e111a', color: 'white' }}>{sub}</option>
+                    ))}
+                  </select>
                   <input 
                     type="text" 
                     placeholder="Search library..." 
-                    style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white', width: '160px', outline: 'none' }}
+                    style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white', width: '120px', outline: 'none' }}
                   />
                   <button type="button" className="mode-toggle-btn mode-toggle-mock" style={{ fontSize: '11px', padding: '6px 12px', background: 'white', color: 'black' }}>
                     + New
@@ -1055,17 +1250,19 @@ Could not connect to backend server or webhook endpoint.
                   </thead>
                   <tbody>
                     {[
-                      { name: 'Screenshot_2026-07-30-17-14-03-security-center.jpg', date: 'Jul 30, 4:44 AM', size: '97.5 KB', icon: '🖼️' },
-                      { name: '1000205719.jpg', date: 'Yesterday', size: '204 KB', icon: '🖼️' },
-                      { name: 'Unit I - Introduction to Databases.pdf', date: 'Yesterday', size: '1.76 MB', icon: '📕' },
-                      { name: 'SE-Unit1.pdf', date: 'Yesterday', size: '1.80 MB', icon: '📕' },
-                      { name: 'image-1785420553040.jpg', date: 'Tuesday', size: '340 KB', icon: '🖼️' },
-                      { name: 'Professional_Prompt_Engineering_on_21_Slides.pptx', date: 'Jul 25', size: '48.7 KB', icon: '📊' },
-                      { name: 'Prompt_Engineering_Practical_Assignment.pptx', date: 'Jul 25', size: '40.7 KB', icon: '📊' },
-                      { name: 'image(11).png', date: 'Jul 23', size: '80.7 KB', icon: '🖼️' },
-                      { name: 'Dark AI workflow editor interface.png', date: 'Jul 22', size: '1.57 MB', icon: '🖼️' },
-                      { name: 'AI Study Assistant workflow design(1).png', date: 'Jul 22', size: '1.61 MB', icon: '🖼️' }
-                    ].map((file, idx) => (
+                      { name: 'Screenshot_2026-07-30-17-14-03-security-center.jpg', date: 'Jul 30, 4:44 AM', size: '97.5 KB', icon: '🖼️', subject: 'Biology' },
+                      { name: '1000205719.jpg', date: 'Yesterday', size: '204 KB', icon: '🖼️', subject: 'Biology' },
+                      { name: 'Unit I - Introduction to Databases.pdf', date: 'Yesterday', size: '1.76 MB', icon: '📕', subject: 'Database Systems' },
+                      { name: 'SE-Unit1.pdf', date: 'Yesterday', size: '1.80 MB', icon: '📕', subject: 'Computer Networks' },
+                      { name: 'image-1785420553040.jpg', date: 'Tuesday', size: '340 KB', icon: '🖼️', subject: 'Biology' },
+                      { name: 'Professional_Prompt_Engineering_on_21_Slides.pptx', date: 'Jul 25', size: '48.7 KB', icon: '📊', subject: 'Computer Networks' },
+                      { name: 'Prompt_Engineering_Practical_Assignment.pptx', date: 'Jul 25', size: '40.7 KB', icon: '📊', subject: 'Computer Networks' },
+                      { name: 'image(11).png', date: 'Jul 23', size: '80.7 KB', icon: '🖼️', subject: 'Biology' },
+                      { name: 'Dark AI workflow editor interface.png', date: 'Jul 22', size: '1.57 MB', icon: '🖼️', subject: 'Database Systems' },
+                      { name: 'AI Study Assistant workflow design(1).png', date: 'Jul 22', size: '1.61 MB', icon: '🖼️', subject: 'Database Systems' }
+                    ]
+                    .filter(file => selectedSubject === 'All Subjects' || file.subject === selectedSubject)
+                    .map((file, idx) => (
                       <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
                         <td style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#e2e8f0' }}>
                           <span style={{ fontSize: '13px' }}>{file.icon}</span>
@@ -1173,6 +1370,23 @@ Could not connect to backend server or webhook endpoint.
               </div>
 
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '4px 0' }}></div>
+
+              {/* Subject folder scope selector */}
+              <div className="glass-panel" style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.1)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: 'white' }}>Vector Database Subject Scope</span>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Any new documents indexed will be bound to this subject directory.</span>
+                </div>
+                <select 
+                  value={selectedSubject} 
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.3)', color: 'white', outline: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  {['All Subjects', 'Computer Networks', 'Database Systems', 'Biology'].map(sub => (
+                    <option key={sub} value={sub} style={{ background: '#0e111a', color: 'white' }}>{sub}</option>
+                  ))}
+                </select>
+              </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <span style={{ fontSize: '11px', fontWeight: '700', color: 'white' }}>Index New Textbook/Syllabus Document</span>

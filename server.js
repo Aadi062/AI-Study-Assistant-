@@ -33,7 +33,7 @@ function stripMarkdown(text) {
 }
 
 app.post('/api/chat', async (req, res) => {
-  const { sessionId, message, chatMode, activeVersion, apiKey, isInit, isDeepResearch, isGuidedLearning } = req.body;
+  const { sessionId, message, chatMode, activeVersion, apiKey, isInit, isDeepResearch, isGuidedLearning, learningMode } = req.body;
   const originalMessage = message;
   const startTime = Date.now();
   const queryLower = message ? message.toLowerCase() : '';
@@ -206,11 +206,17 @@ app.post('/api/chat', async (req, res) => {
       if (isGuidedLearning) {
         guidedPrompt = `\nAdditional Rule: Guided Learning is active. Break down the concept into step-by-step digestible study modules. Do not give the whole answer at once. End with an interactive prompt/question asking the student to respond.`;
       }
+      let stylePrompt = '';
+      if (learningMode === 'socratic') {
+        stylePrompt = `\nAdditional Rule: Socratic Tutor Mode is active. Do not give direct answers immediately. Guide the student step-by-step by asking leading questions that help them discover the answer themselves. Keep your responses short, conversational, and pedagogical.`;
+      } else if (learningMode === 'feynman') {
+        stylePrompt = `\nAdditional Rule: Feynman Technique Mode is active. First, ask the student to explain the concept in their own simple words as if teaching it to a child. Once they respond, review their explanation, identify conceptual gaps, grade it out of 100 with a label 'Feynman score: [Score]/100', and write a constructive critique.`;
+      }
 
       const systemInstruction = {
         role: 'user',
         parts: [{
-          text: `You are the AI Study Assistant n8n agent. ${groundingInstruction}Your job is to provide personalized learning, answer student doubts instantly, generate practice quizzes, study plans, or flashcards. ${deepPrompt}${guidedPrompt}
+          text: `You are the AI Study Assistant n8n agent. ${groundingInstruction}Your job is to provide personalized learning, answer student doubts instantly, generate practice quizzes, study plans, or flashcards. ${deepPrompt}${guidedPrompt}${stylePrompt}
 If the student asks to be tested or wants practice questions, you MUST generate a short multiple-choice quiz in this exact markdown format:
 
 ### Practice Quiz: [Topic]
@@ -268,6 +274,18 @@ If the student asks for a study plan or schedule, generate a day-by-day structur
           { agent: "Deep Research Agent", action: "Initiating recursive query expansions and reference sweeps.", status: "completed" },
           { agent: "Researcher Agent", action: "Scanned local grounded vector documents and external academic indices.", status: "completed" },
           { agent: "Consensus Synthesis Agent", action: "Corroborated citations, extracted key definitions, and drafted synthesis report.", status: "completed" }
+        ];
+      } else if (learningMode === 'socratic') {
+        agentLogs = [
+          { agent: "Planner Agent", action: "Identified Socratic coaching style request. Activating Socratic Coach.", status: "completed" },
+          { agent: "Socratic Coach Agent", action: "Formulated pedagogical query loops and guided check-in prompts.", status: "completed" },
+          { agent: "Writer Agent", action: "Rendered guided Socratic sub-lessons.", status: "completed" }
+        ];
+      } else if (learningMode === 'feynman') {
+        agentLogs = [
+          { agent: "Planner Agent", action: "Feynman Technique validation mode active. Initiating gap evaluator.", status: "completed" },
+          { agent: "Gap Evaluator Agent", action: "Cross-referenced student response against vector syllabus.", status: "completed" },
+          { agent: "Grading Agent", action: "Scored student answer and compiled structured critique report.", status: "completed" }
         ];
       } else if (isGuidedLearning) {
         agentLogs = [
@@ -725,7 +743,52 @@ ${ddgData.Abstract}
       assistantReply += `\n\n### 🌐 Deep Research Synthesis Report\n- **Fact Grounding**: Verified against curriculum vector index.\n- **Depth Level**: Comprehensive multi-step exploration.\n- **Source Authenticity**: 100% verified academic references.`;
     }
     
-    if (isGuidedLearning) {
+    if (learningMode === 'socratic') {
+      agentLogs = [
+        { agent: "Planner Agent", action: "Identified Socratic coaching style request. Activating Socratic Coach.", status: "completed" },
+        { agent: "Socratic Coach Agent", action: "Formulated pedagogical query loops and guided check-in prompts.", status: "completed" },
+        { agent: "Writer Agent", action: "Rendered guided Socratic sub-lessons.", status: "completed" }
+      ];
+      assistantReply = `### 🎓 Socratic Coach Mode: ${activeTopic}
+
+Instead of giving you the answers directly, let's explore **${activeTopic}** together. 
+
+To start, what do you think is the primary real-world purpose of this concept, or where have you encountered it before? 
+
+*Pedagogical Tip: Try to state your thoughts in a single sentence, and I will guide you to the formal definition step-by-step!*`;
+    } else if (learningMode === 'feynman') {
+      agentLogs = [
+        { agent: "Planner Agent", action: "Feynman Technique validation active. Grading student response.", status: "completed" },
+        { agent: "Gap Evaluator Agent", action: "Scanned response length and conceptual coverage.", status: "completed" },
+        { agent: "Writer Agent", action: "Rendered Feynman score card.", status: "completed" }
+      ];
+      const hasExplanationContent = originalMessage && originalMessage.trim().length > 15 && !originalMessage.includes('explain') && !originalMessage.includes('what is');
+      
+      if (hasExplanationContent) {
+        // Calculate a mock score based on message length
+        const score = Math.min(65 + Math.floor(originalMessage.length / 5), 98);
+        assistantReply = `### 🔬 Feynman Concept Review: ${activeTopic}
+        
+- **Your Simplified Explanation**: *"${originalMessage}"*
+- **Feynman score**: **${score}/100**
+
+#### Evaluation Report:
+1. **Analogy Strength**: ⭐️⭐️⭐️⭐️☆ (Good usage of everyday terminology).
+2. **Key Missing Parameter**: The formal variables and scaling properties of ${activeTopic}.
+3. **Constructive Critique**: You did a solid job explaining the intuition! To elevate this to a 100/100, try to explain how it relates directly to the physical formulas or protocols in the curriculum.
+
+*Discussion prompt: Would you like to rewrite your explanation to address this critique?*`;
+      } else {
+        assistantReply = `### 💡 Feynman Technique Mode: ${activeTopic}
+
+Welcome to the Feynman Technique workspace! The best way to learn a concept is to teach it to someone else.
+
+**Your task**:
+In your own simple words, explain **${activeTopic}** as if you were explaining it to a 10-year-old child. 
+
+Once you reply, I will evaluate your explanation, point out any conceptual gaps, and give you a Feynman Score!`;
+      }
+    } else if (isGuidedLearning) {
       agentLogs.push({ agent: "Guided Coach Agent", action: "Structured curriculum answer into simple guided modules.", status: "completed" });
       assistantReply = `### 📚 Guided Study Guide: ${activeTopic}\n\nLet's break this down step-by-step:\n\n1. **Core Concept**: Read the overview below.\n2. **Practice Step**: Work on the practice prompts.\n3. **Quick Test**: Answer the quiz cards.\n\n---\n\n` + assistantReply + `\n\n**Discussion Prompt**: Do you want to dive deeper into any of these stages? Reply to continue!`;
     }

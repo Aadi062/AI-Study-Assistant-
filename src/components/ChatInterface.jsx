@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, BookOpen, RefreshCw, Settings, Key, Volume2, Mic, Paperclip, AudioLines, PenTool, Globe, Image, Upload, Video, Music, Code } from 'lucide-react';
+import { Send, Sparkles, BookOpen, RefreshCw, Settings, Key, Volume2, Mic, Paperclip, AudioLines, PenTool, Globe, Image, Upload, Video, Music, Code, Download } from 'lucide-react';
 
 export default function ChatInterface({ 
   activeVersion, 
@@ -15,7 +15,9 @@ export default function ChatInterface({
   canvasTitle,
   setCanvasTitle,
   canvasContent,
-  setCanvasContent
+  setCanvasContent,
+  learningMode,
+  setLearningMode
 }) {
   const [inputValue, setInputValue] = useState('');
   const [showSettings, setShowSettings] = useState(false);
@@ -45,6 +47,33 @@ export default function ChatInterface({
     setAttachedFiles(prev => prev.filter(f => f.id !== fileId));
   };
   const [personalIntelEnabled, setPersonalIntelEnabled] = useState(true);
+
+  const handleExportChat = () => {
+    if (chatHistory.length <= 1) {
+      alert("No conversation history to export yet.");
+      return;
+    }
+    
+    let mdContent = `# AI Study Assistant Chat Session - ${new Date().toLocaleDateString()}\n\n`;
+    chatHistory.forEach(msg => {
+      const roleName = msg.sender === 'student' ? 'Student' : 'AI Study Assistant';
+      const timeStr = new Date(msg.timestamp).toLocaleTimeString();
+      mdContent += `### [${timeStr}] ${roleName}\n${msg.text}\n\n`;
+      if (msg.sources && msg.sources.length > 0) {
+        mdContent += `**Retrieved Grounding Sources**:\n${msg.sources.join('\n')}\n\n`;
+      }
+      mdContent += `---\n\n`;
+    });
+    
+    const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `study_session_${Date.now()}.md`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -301,6 +330,12 @@ export default function ChatInterface({
       return <QuizParser text={msg.text} />;
     }
 
+    const isMermaid = msg.text.includes('```mermaid') || msg.text.includes('mindmap') || msg.text.includes('flowchart');
+    
+    if (isMermaid) {
+      return <MermaidParser text={msg.text} />;
+    }
+
     const isFlashcards = msg.text.includes('### Flashcards') || msg.text.includes('Front:') || msg.text.includes('Back:');
     
     if (isFlashcards) {
@@ -339,14 +374,25 @@ export default function ChatInterface({
             <h2 className="chat-title">Study Console</h2>
           </div>
           
-          <button 
-            onClick={() => setShowSettings(!showSettings)}
-            className="drawer-close-btn"
-            style={{ padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            title="Gemini API Configurations"
-          >
-            <Settings size={14} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button 
+              type="button"
+              onClick={handleExportChat}
+              className="drawer-close-btn"
+              style={{ padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Export Conversation to Markdown"
+            >
+              <Download size={13} />
+            </button>
+            <button 
+              onClick={() => setShowSettings(!showSettings)}
+              className="drawer-close-btn"
+              style={{ padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Gemini API Configurations"
+            >
+              <Settings size={14} />
+            </button>
+          </div>
         </div>
 
         {/* API Key Panel */}
@@ -394,6 +440,34 @@ export default function ChatInterface({
               style={{ fontSize: '8px', padding: '6px 2px', borderColor: chatMode === 'gemini' ? 'var(--accent-blue)' : '', color: chatMode === 'gemini' ? 'var(--accent-blue-light)' : '' }}
             >
               Gemini AI
+            </button>
+          </div>
+        </div>
+
+        {/* Learning Style Mode Selector */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
+          <span className="mode-toggle-label">Learning Mode:</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+            <button
+              onClick={() => setLearningMode('standard')}
+              className={`mode-toggle-btn ${learningMode === 'standard' ? 'mode-toggle-mock' : ''}`}
+              style={{ fontSize: '8px', padding: '6px 2px' }}
+            >
+              Standard
+            </button>
+            <button
+              onClick={() => setLearningMode('socratic')}
+              className={`mode-toggle-btn ${learningMode === 'socratic' ? 'mode-toggle-mock' : ''}`}
+              style={{ fontSize: '8px', padding: '6px 2px', borderColor: learningMode === 'socratic' ? 'var(--accent-purple-light)' : '', color: learningMode === 'socratic' ? 'var(--accent-purple-light)' : '' }}
+            >
+              🎓 Socratic
+            </button>
+            <button
+              onClick={() => setLearningMode('feynman')}
+              className={`mode-toggle-btn ${learningMode === 'feynman' ? 'mode-toggle-mock' : ''}`}
+              style={{ fontSize: '8px', padding: '6px 2px', borderColor: learningMode === 'feynman' ? 'var(--accent-emerald-light)' : '', color: learningMode === 'feynman' ? 'var(--accent-emerald-light)' : '' }}
+            >
+              🔬 Feynman
             </button>
           </div>
         </div>
@@ -683,6 +757,126 @@ export default function ChatInterface({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function MermaidParser({ text }) {
+  const mermaidMatch = text.match(/```mermaid([\s\S]*?)```/);
+  const code = mermaidMatch ? mermaidMatch[1] : '';
+  const textClean = text.replace(/```mermaid[\s\S]*?```/g, '').trim();
+
+  if (!code) {
+    return <p style={{ fontSize: '12px', lineHeight: '1.5' }}>{text}</p>;
+  }
+
+  const lines = code.split('\n').filter(l => l.trim() !== '' && !l.includes('mindmap') && !l.includes('flowchart'));
+  
+  let rootNode = 'Mind Map';
+  const children = [];
+
+  lines.forEach(line => {
+    const depth = line.search(/\S/);
+    const cleanLine = line.trim().replace(/[()[\]{}@]/g, '');
+    if (depth === 0 || depth === 2) {
+      rootNode = cleanLine;
+    } else {
+      children.push(cleanLine);
+    }
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      {textClean && <p style={{ fontSize: '12px', lineHeight: '1.5', margin: 0 }}>{textClean}</p>}
+      
+      <div 
+        className="glass-panel" 
+        style={{ 
+          background: 'rgba(0,0,0,0.3)', 
+          border: '1px solid var(--border-color)', 
+          borderRadius: '12px', 
+          padding: '16px', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '12px',
+          overflow: 'hidden'
+        }}
+      >
+        <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--accent-purple-light)' }}>
+          📊 Study Mind Map
+        </span>
+        
+        <svg width="100%" height="160" viewBox="0 0 320 160" style={{ overflow: 'visible' }}>
+          {children.map((child, idx) => {
+            const xVal = 40 + (idx * (240 / Math.max(1, children.length - 1)));
+            return (
+              <g key={idx}>
+                <path 
+                  d={`M 160 30 Q ${160 + (xVal - 160)/2} 75, ${xVal} 115`}
+                  fill="none" 
+                  stroke="rgba(168, 85, 247, 0.4)" 
+                  strokeWidth="1.5"
+                  strokeDasharray="4 2"
+                />
+              </g>
+            );
+          })}
+
+          <g transform="translate(160, 30)">
+            <rect 
+              x="-65" 
+              y="-15" 
+              width="130" 
+              height="30" 
+              rx="15" 
+              fill="var(--accent-purple)"
+              style={{ filter: 'drop-shadow(0px 0px 8px rgba(168,85,247,0.4))' }}
+            />
+            <text 
+              fill="white" 
+              fontSize="9" 
+              fontWeight="bold" 
+              textAnchor="middle" 
+              y="4"
+            >
+              {rootNode.length > 20 ? rootNode.substring(0, 18) + '...' : rootNode}
+            </text>
+          </g>
+
+          {children.map((child, idx) => {
+            const xVal = 40 + (idx * (240 / Math.max(1, children.length - 1)));
+            return (
+              <g key={idx} transform={`translate(${xVal}, 125)`}>
+                <rect 
+                  x="-35" 
+                  y="-12" 
+                  width="70" 
+                  height="24" 
+                  rx="6" 
+                  fill="rgba(255,255,255,0.06)" 
+                  stroke="rgba(255,255,255,0.15)"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => alert(`Sub-concept topic: "${child}"`)}
+                />
+                <text 
+                  fill="rgba(255,255,255,0.9)" 
+                  fontSize="8" 
+                  textAnchor="middle" 
+                  y="3"
+                  style={{ pointerEvents: 'none' }}
+                >
+                  {child.length > 12 ? child.substring(0, 10) + '..' : child}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+        
+        <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>
+          💡 Click sub-nodes to inspect topic relations
+        </span>
+      </div>
     </div>
   );
 }
