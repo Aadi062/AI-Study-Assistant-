@@ -1,12 +1,49 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, BookOpen, RefreshCw, Settings, Key, Volume2, Mic, Paperclip, AudioLines, PenTool, Globe, Image, Upload, Video, Music, Code } from 'lucide-react';
 
-export default function ChatInterface({ activeVersion, setActiveVersion, onSendMessage, isProcessing, chatHistory, setChatHistory, chatMode, setChatMode }) {
+export default function ChatInterface({ 
+  activeVersion, 
+  setActiveVersion, 
+  onSendMessage, 
+  isProcessing, 
+  chatHistory, 
+  setChatHistory, 
+  chatMode, 
+  setChatMode,
+  isCanvasOpen,
+  setIsCanvasOpen,
+  canvasTitle,
+  setCanvasTitle,
+  canvasContent,
+  setCanvasContent
+}) {
   const [inputValue, setInputValue] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState(null);
+  const [attachedFiles, setAttachedFiles] = useState([]);
+  const [isDeepResearchActive, setIsDeepResearchActive] = useState(false);
+  const [isGuidedLearningActive, setIsGuidedLearningActive] = useState(false);
+  const [isGoogleDrivePickerOpen, setIsGoogleDrivePickerOpen] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    const newAttached = files.map(file => ({
+      id: Math.random().toString(36).substring(7),
+      name: file.name,
+      size: (file.size / 1024).toFixed(1) + ' KB',
+      type: file.type,
+      previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+    }));
+    setAttachedFiles(prev => [...prev, ...newAttached]);
+    setIsAttachMenuOpen(false);
+  };
+
+  const removeAttachedFile = (fileId) => {
+    setAttachedFiles(prev => prev.filter(f => f.id !== fileId));
+  };
   const [personalIntelEnabled, setPersonalIntelEnabled] = useState(true);
 
   useEffect(() => {
@@ -56,8 +93,8 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
             ← Back
           </button>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', margin: '4px 0' }}></div>
-          <button type="button" onClick={() => { setInputValue("Start Guided Learning session on "); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
-            <BookOpen size={13} style={{ opacity: 0.6 }} /> Guided Learning
+          <button type="button" onClick={() => { setIsGuidedLearningActive(!isGuidedLearningActive); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%', borderColor: isGuidedLearningActive ? 'var(--accent-emerald)' : 'transparent', background: isGuidedLearningActive ? 'rgba(16,185,129,0.1)' : 'transparent' }}>
+            <BookOpen size={13} style={{ color: isGuidedLearningActive ? 'var(--accent-emerald-light)' : '#e2e8f0', opacity: 0.8 }} /> Guided Learning
           </button>
           <div className="popover-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', fontSize: '12px', color: '#e2e8f0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -80,10 +117,10 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
 
     return (
       <div className="more-popover glass-panel animate-fade-in" onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', bottom: 'calc(100% + 12px)', left: '0', width: '220px', borderRadius: '12px', background: 'rgba(15, 18, 36, 0.96)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)', padding: '6px 0', zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
-        <button type="button" onClick={() => { setInputValue(inputValue + " [File Attachment]"); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
+        <button type="button" onClick={() => { fileInputRef.current.click(); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
           <Upload size={13} style={{ color: 'var(--text-muted)' }} /> Upload files
         </button>
-        <button type="button" className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%', opacity: 0.6 }} disabled>
+        <button type="button" onClick={() => { setIsGoogleDrivePickerOpen(true); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
           <Globe size={13} style={{ color: 'var(--text-muted)' }} /> Add from Drive
         </button>
         <button type="button" onClick={() => setActiveSubmenu('uploads')} className="popover-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', fontSize: '12px', width: '100%' }}>
@@ -110,11 +147,11 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
           </div>
           <span style={{ fontSize: '9px', background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '8px', color: 'var(--text-muted)' }}>New</span>
         </button>
-        <button type="button" onClick={() => { setInputValue("Open canvas workspace for "); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
+        <button type="button" onClick={() => { setIsCanvasOpen(true); setCanvasTitle("Syllabus Notes Draft"); setCanvasContent("Study Syllabus Content Outline:\n\n1. Computer Networks Fundamentals\n2. Key Protocols: TCP, UDP, IP, HTTP\n3. RAG Architecture details\n\n[Use Canvas Actions below to format, improve or edit this draft]"); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
           <PenTool size={13} style={{ color: 'var(--text-muted)' }} /> Canvas
         </button>
-        <button type="button" onClick={() => { setInputValue("Run deep research on "); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%' }}>
-          <Search size={13} style={{ color: 'var(--text-muted)' }} /> Deep Research
+        <button type="button" onClick={() => { setIsDeepResearchActive(!isDeepResearchActive); setIsAttachMenuOpen(false); }} className="popover-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', textAlign: 'left', fontSize: '12px', width: '100%', borderColor: isDeepResearchActive ? 'var(--accent-purple)' : 'transparent', background: isDeepResearchActive ? 'rgba(168,85,247,0.1)' : 'transparent' }}>
+          <Search size={13} style={{ color: isDeepResearchActive ? 'var(--accent-purple-light)' : 'var(--text-muted)' }} /> Deep Research
         </button>
         <button type="button" onClick={() => setActiveSubmenu('tools')} className="popover-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 16px', background: 'none', border: 'none', color: '#e2e8f0', cursor: 'pointer', fontSize: '12px', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -218,17 +255,28 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!inputValue.trim() || isProcessing) return;
-    
-    const userMessage = inputValue;
+    const hasAttachments = attachedFiles.length > 0;
+    if (!inputValue.trim() && !hasAttachments) return;
+    if (isProcessing) return;
+
+    let userMessage = inputValue;
+    if (hasAttachments) {
+      const fileLabels = attachedFiles.map(f => `📎 **${f.name}** (${f.size})`).join('\n');
+      userMessage = `${fileLabels}\n\n${userMessage}`;
+    }
+
     setInputValue('');
-    
+    setAttachedFiles([]);
+
     // Add user message to history
     const newUserMsg = { id: Date.now().toString(), sender: 'student', text: userMessage, timestamp: new Date() };
     setChatHistory(prev => [...prev, newUserMsg]);
-    
+
     // Trigger visualizer animation and fetch reply
-    onSendMessage(userMessage);
+    onSendMessage(userMessage, { 
+      isDeepResearch: isDeepResearchActive, 
+      isGuidedLearning: isGuidedLearningActive 
+    });
   };
 
   const renderInlineMarkdown = (text) => {
@@ -474,7 +522,55 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
       </div>
 
       {/* Input Form */}
-      <form onSubmit={handleSubmit} className="chat-input-container">
+      <form onSubmit={handleSubmit} className="chat-input-container" style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px' }}>
+        {/* Attached Files Preview Grid */}
+        {attachedFiles.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' }}>
+            {attachedFiles.map(file => (
+              <div 
+                key={file.id} 
+                className="glass-panel animate-fade-in" 
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', fontSize: '10px', position: 'relative' }}
+              >
+                {file.previewUrl ? (
+                  <img src={file.previewUrl} alt="preview" style={{ width: '16px', height: '16px', borderRadius: '4px', objectFit: 'cover' }} />
+                ) : (
+                  <span>📄</span>
+                )}
+                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', maxWidth: '100px' }}>
+                  <span style={{ color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={file.name}>{file.name}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '8px' }}>{file.size}</span>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => removeAttachedFile(file.id)}
+                  style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: 'white', cursor: 'pointer', borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', padding: 0, marginLeft: '4px' }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Mode Indicators (Deep Research, Guided Learning) */}
+        {(isDeepResearchActive || isGuidedLearningActive) && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', width: '100%' }}>
+            {isDeepResearchActive && (
+              <span className="badge active-pulse" style={{ background: 'rgba(168,85,247,0.15)', color: 'var(--accent-purple-light)', border: '1px solid rgba(168,85,247,0.3)', fontSize: '8.5px', padding: '2px 8px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                🌐 Deep Research Active
+                <button type="button" onClick={() => setIsDeepResearchActive(false)} style={{ background: 'none', border: 'none', color: 'var(--accent-purple-light)', cursor: 'pointer', padding: 0, fontSize: '9px', fontWeight: 'bold' }}>✕</button>
+              </span>
+            )}
+            {isGuidedLearningActive && (
+              <span className="badge active-pulse" style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--accent-emerald-light)', border: '1px solid rgba(16,185,129,0.3)', fontSize: '8.5px', padding: '2px 8px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                📚 Guided Learning Active
+                <button type="button" onClick={() => setIsGuidedLearningActive(false)} style={{ background: 'none', border: 'none', color: 'var(--accent-emerald-light)', cursor: 'pointer', padding: 0, fontSize: '9px', fontWeight: 'bold' }}>✕</button>
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="chat-input-wrapper" style={{ position: 'relative' }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <button
@@ -519,13 +615,74 @@ export default function ChatInterface({ activeVersion, setActiveVersion, onSendM
 
           <button
             type="submit"
-            disabled={!inputValue.trim() || isProcessing}
+            disabled={(!inputValue.trim() && attachedFiles.length === 0) || isProcessing}
             className="chat-send-btn"
           >
             <Send size={14} />
           </button>
         </div>
+        
+        {/* Hidden File Input */}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileSelect} 
+          multiple 
+          style={{ display: 'none' }} 
+        />
       </form>
+
+      {/* Google Drive Picker */}
+      {isGoogleDrivePickerOpen && (
+        <div 
+          onClick={() => setIsGoogleDrivePickerOpen(false)}
+          style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="glass-panel animate-fade-in" 
+            style={{ width: '360px', borderRadius: '16px', background: 'rgba(15, 18, 36, 0.98)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 50px rgba(0,0,0,0.7)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: '800', color: 'white', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                ▲ Google Drive File Picker
+              </span>
+              <button 
+                type="button" 
+                onClick={() => setIsGoogleDrivePickerOpen(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px' }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', margin: '2px 0' }}></div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {[
+                { name: 'Unit I Syllabus Notes.docx', size: '15.4 KB' },
+                { name: 'Biology Lab Manual.pdf', size: '1.2 MB' },
+                { name: 'Semester 1 Schedule.xlsx', size: '44.8 KB' },
+                { name: 'Photosynthesis Cycle Outline.pptx', size: '240 KB' }
+              ].map((file, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => {
+                    setAttachedFiles(prev => [
+                      ...prev,
+                      { id: Math.random().toString(36).substring(7), name: file.name, size: file.size, type: 'drive', previewUrl: null }
+                    ]);
+                    setIsGoogleDrivePickerOpen(false);
+                  }}
+                  className="popover-item"
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', cursor: 'pointer', fontSize: '11px', color: '#e2e8f0' }}
+                >
+                  <span>📂 {file.name}</span>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{file.size}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -40,6 +40,9 @@ export default function App() {
   const [memories, setMemories] = useState(JSON.parse(localStorage.getItem('ai_memories') || '[]'));
   const [newMemory, setNewMemory] = useState('');
   const [customInstructions, setCustomInstructions] = useState(localStorage.getItem('custom_instructions') || '');
+  const [isCanvasOpen, setIsCanvasOpen] = useState(false);
+  const [canvasTitle, setCanvasTitle] = useState('Untitled Document');
+  const [canvasContent, setCanvasContent] = useState('');
   const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
   React.useEffect(() => {
@@ -241,7 +244,7 @@ export default function App() {
   }, [chatHistory]);
 
   // 3. Handle sending messages via Backend API
-  const handleSendMessage = async (userMessage) => {
+  const handleSendMessage = async (userMessage, options = {}) => {
     setIsProcessing(true);
     setExecutingPath(null);
 
@@ -268,7 +271,9 @@ export default function App() {
           message: userMessage,
           chatMode,
           activeVersion,
-          apiKey: localStorage.getItem('gemini_api_key')
+          apiKey: localStorage.getItem('gemini_api_key'),
+          isDeepResearch: options.isDeepResearch || false,
+          isGuidedLearning: options.isGuidedLearning || false
         })
       });
 
@@ -842,10 +847,105 @@ Could not connect to backend server or webhook endpoint.
           setChatHistory={setChatHistory}
           chatMode={chatMode}
           setChatMode={setChatMode}
+          isCanvasOpen={isCanvasOpen}
+          setIsCanvasOpen={setIsCanvasOpen}
+          canvasTitle={canvasTitle}
+          setCanvasTitle={setCanvasTitle}
+          canvasContent={canvasContent}
+          setCanvasContent={setCanvasContent}
         />
 
-        {/* Stage Content Area (Visualizer or Logs Dashboard) */}
-        <div className="stage-content">
+        {/* Stage Content Area (Visualizer or Logs Dashboard) or Canvas editor */}
+        {isCanvasOpen ? (
+          <div className="canvas-container glass-panel animate-slide-in" style={{ flex: 1.5, height: '100%', display: 'flex', flexDirection: 'column', background: 'rgba(12, 10, 24, 0.98)', borderLeft: '1px solid var(--border-color)', overflow: 'hidden' }}>
+            {/* Canvas Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <PenTool size={16} style={{ color: 'var(--accent-purple-light)' }} />
+                <input 
+                  type="text" 
+                  value={canvasTitle} 
+                  onChange={(e) => setCanvasTitle(e.target.value)} 
+                  style={{ background: 'none', border: 'none', color: 'white', fontSize: '13px', fontWeight: '700', outline: 'none', borderBottom: '1px dashed rgba(255,255,255,0.1)', padding: '2px 0' }}
+                  placeholder="Untitled Document"
+                />
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setIsCanvasOpen(false)}
+                className="thread-action-btn"
+                style={{ padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="Close Canvas"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Document Textarea editor */}
+            <div style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column' }}>
+              <textarea 
+                value={canvasContent}
+                onChange={(e) => setCanvasContent(e.target.value)}
+                placeholder="Write your essay, curriculum notes, or code here..."
+                style={{ width: '100%', flex: 1, padding: '12px', fontSize: '12px', lineHeight: '1.6', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: '12px', color: 'white', resize: 'none', outline: 'none', fontFamily: canvasContent.includes('function') || canvasContent.includes('class ') ? 'var(--font-mono)' : 'inherit' }}
+              />
+            </div>
+
+            {/* AI Assistant Edit Tools */}
+            <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border-color)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', background: 'rgba(0,0,0,0.1)' }}>
+              <span style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: '700', width: '100%', marginBottom: '4px' }}>AI Canvas Actions</span>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setCanvasContent(prev => prev + "\n\n/* AI Grammar Fix Applied: Corrected syntax alignment and word flow variables. */");
+                  setChatHistory(prev => [
+                    ...prev,
+                    { id: Date.now() + '-s', sender: 'student', text: 'AI, please review and fix typos/grammar in my Canvas document.', timestamp: new Date() },
+                    { id: Date.now() + '-a', sender: 'assistant', text: 'I have successfully reviewed your Canvas draft and appended clarifications to the end of the workspace!', timestamp: new Date() }
+                  ]);
+                }}
+                className="mode-toggle-btn mode-toggle-mock" 
+                style={{ fontSize: '9px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                ✍️ Fix grammar & typos
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setCanvasContent(prev => {
+                    const lines = prev.split('\n').filter(l => l.trim() !== '');
+                    return lines.map(line => `• ${line.replace(/^•\s*/, '')}`).join('\n');
+                  });
+                  setChatHistory(prev => [
+                    ...prev,
+                    { id: Date.now() + '-s', sender: 'student', text: 'AI, format my canvas draft as a bulleted syllabus list.', timestamp: new Date() },
+                    { id: Date.now() + '-a', sender: 'assistant', text: 'Format complete. I converted your paragraphs into structured bullet points in the Canvas editor.', timestamp: new Date() }
+                  ]);
+                }}
+                className="mode-toggle-btn mode-toggle-mock" 
+                style={{ fontSize: '9px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                📊 Format structure
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setCanvasContent("function runStudyAssistantSimulator() {\n  console.log('Initializing Gemini Study Console...');\n  const model = 'gemini-1.5-pro';\n  const features = ['RAG', 'Visualizer', 'Canvas', 'Plugins'];\n  return `Simulator online using ${model} with ${features.join(', ')}`;\n}");
+                  setChatHistory(prev => [
+                    ...prev,
+                    { id: Date.now() + '-s', sender: 'student', text: 'AI, write a Javascript function to simulate the Study Console.', timestamp: new Date() },
+                    { id: Date.now() + '-a', sender: 'assistant', text: 'Done! I have written and formatted the `runStudyAssistantSimulator` template function directly inside your Canvas.', timestamp: new Date() }
+                  ]);
+                }}
+                className="mode-toggle-btn mode-toggle-mock" 
+                style={{ fontSize: '9px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                💻 Generate code template
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="stage-content">
           {activeTab === 'visualizer' ? (
             <WorkflowVisualizer 
               activeStep={activeStep}
@@ -1158,7 +1258,8 @@ Could not connect to backend server or webhook endpoint.
             <LogsDashboard executions={executions} />
           )}
         </div>
-      </div>
+      )}
+    </div>
       {renderSettingsModals()}
     </div>
   );
