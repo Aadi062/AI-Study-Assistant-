@@ -701,7 +701,8 @@ Could not connect to backend server or webhook endpoint.
                         { trigger: 'excel / spreadsheet', action: 'Create Data Grid', process: 'Spreadsheet Excel Tool' },
                         { trigger: 'roadmap / timeline', action: 'Draw Timeline Checklist', process: 'Roadmap Planner' },
                         { trigger: 'erd / schema', action: 'Model Database ERD', process: 'Designer Schema Tool' },
-                        { trigger: 'chart / graph', action: 'Render SVG Graph', process: 'Visualization Tool' }
+                        { trigger: 'chart / graph', action: 'Render SVG Graph', process: 'Visualization Tool' },
+                        { trigger: 'image / picture', action: 'Draw Illustration', process: 'Image Generator Tool' }
                       ].map((row, rIdx) => (
                         <tr key={rIdx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                           <td style={{ padding: '4px', fontWeight: 'bold', color: 'white' }}>{row.trigger}</td>

@@ -351,6 +351,13 @@ export default function ChatInterface({
     const isChart = msg.text.includes('[Chart]');
     if (isChart) return <ChartCard text={msg.text} />;
 
+    const isImage = msg.text.includes('[Image:');
+    if (isImage) {
+      const imgMatch = msg.text.match(/\[Image:\s*([^\]]+)\]/i);
+      const imgSrc = imgMatch ? imgMatch[1].trim() : '';
+      return <ImageCard src={`/${imgSrc}`} text={msg.text} />;
+    }
+
     const isFlashcards = msg.text.includes('### Flashcards') || msg.text.includes('Front:') || msg.text.includes('Back:');
     
     if (isFlashcards) {
@@ -1123,6 +1130,61 @@ function ChartCard({ text }) {
             </linearGradient>
           </defs>
         </svg>
+      </div>
+    </div>
+  );
+}
+
+// 6. Image Generation Visualizer Card
+function ImageCard({ src, text }) {
+  const cleanText = text.replace(/\[Image:\s*([^\]]+)\]/gi, '').trim();
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      
+      <div 
+        className="glass-panel" 
+        style={{ 
+          background: 'rgba(0, 0, 0, 0.4)', 
+          border: '1px solid var(--border-color)', 
+          borderRadius: '16px', 
+          padding: '12px', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '8px', 
+          alignItems: 'center',
+          overflow: 'hidden'
+        }}
+      >
+        <span style={{ fontSize: '8px', color: 'var(--accent-purple-light)', fontWeight: '800', textTransform: 'uppercase', alignSelf: 'flex-start' }}>
+          🖼️ AI Generated Illustration
+        </span>
+        <div 
+          style={{ 
+            width: '100%', 
+            height: '180px', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            position: 'relative',
+            border: '1px solid rgba(255,255,255,0.06)'
+          }}
+        >
+          <img 
+            src={src} 
+            alt="AI Generated Illustration"
+            style={{ 
+              position: 'absolute',
+              left: '-10px', 
+              top: '-135px', 
+              width: '540px', 
+              height: 'auto',
+              display: 'block'
+            }} 
+          />
+        </div>
+        <span style={{ fontSize: '8.5px', color: 'var(--text-muted)' }}>
+          Ultimate Track Build Speed & Performance
+        </span>
       </div>
     </div>
   );

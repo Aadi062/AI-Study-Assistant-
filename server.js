@@ -763,6 +763,11 @@ ${ddgData.Abstract}
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Weekly Study Progress';
       detectedIntent = 'Data Visualization';
       routedTool = 'SVG Graph Visualizer Tool';
+    } else if (queryLower.includes('image') || queryLower.includes('picture') || queryLower.includes('illustration') || queryLower.includes('draw')) {
+      const topicRaw = message.replace(/give me an|generate an|show|draw an|image of|picture of|illustration of/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Honda Civic Type R';
+      detectedIntent = 'Image Generation';
+      routedTool = 'Image Generator Tool';
     } else {
       const topicRaw = message.replace(/what is|explain|tell me about|how does|define|who is|who was/gi, '').trim();
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Academic Concept';
@@ -784,6 +789,8 @@ ${ddgData.Abstract}
       assistantReply = `Here is the visual ERD schema design for **${activeTopic}**.\n\n[ERD]\nTable: Users | PK: UserID | Fields: Name, Email\nTable: Profiles | PK: ProfileID | Fields: Bio, FK: UserID\nTable: Activities | PK: ActivityID | Fields: Action, FK: UserID`;
     } else if (detectedIntent === 'Data Visualization') {
       assistantReply = `Here is the SVG data visualization graph for **${activeTopic}**.\n\n[Chart]\nLabels: Monday,Tuesday,Wednesday,Thursday,Friday\nValues: 30,55,45,85,60`;
+    } else if (detectedIntent === 'Image Generation') {
+      assistantReply = `Here is the generated image illustration for **${activeTopic}**.\n\n[Image: media__1785690174675.png]`;
     }
 
     if (isDeepResearch) {
