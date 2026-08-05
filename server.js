@@ -760,6 +760,11 @@ ${ddgData.Abstract}
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'E-Commerce Database';
       detectedIntent = 'Database Modeling';
       routedTool = 'Database Designer Tool';
+    } else if (queryLower.includes('flowchart') || queryLower.includes('diagram') || queryLower.includes('mind map') || queryLower.includes('mindmap')) {
+      const topicRaw = message.replace(/give me a|generate a|draw a|flowchart of|diagram of|mind map of|mindmap of/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Car Management System';
+      detectedIntent = 'Diagram Generation';
+      routedTool = 'Mermaid Diagram Tool';
     } else if (queryLower.includes('chart') || queryLower.includes('graph') || queryLower.includes('plot')) {
       const topicRaw = message.replace(/give me a|generate a|chart of|graph of|plot of/gi, '').trim();
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Weekly Study Progress';
@@ -856,7 +861,12 @@ ${ddgData.Abstract}
         }
       }
 
-      assistantReply = `Here is the generated image illustration for **${activeTopic}**.\n\n[Image: ${imageUrl}]`;
+    } else if (detectedIntent === 'Diagram Generation') {
+      if (queryLower.includes('car')) {
+        assistantReply = `Here is a simple **Car Management System Flowchart**:\n\n\`\`\`mermaid\nflowchart TD\n    start([START]) --> input[Enter Car Details<br>ID, Name, Model, Brand]\n    input --> validate{Validate Information}\n    validate -- No --> reenter[Re-enter Details]\n    reenter --> input\n    validate -- Yes --> save[Save Record]\n    save --> display[Display Car Information]\n    display --> choice{Update / Delete Record?}\n    choice -- Yes --> modify[Modify / Delete Record]\n    choice -- No --> exit[Exit]\n    modify --> ending([END])\n    exit --> ending\n\`\`\``;
+      } else {
+        assistantReply = `Here is the Mermaid flowchart diagram representing **${activeTopic}**:\n\n\`\`\`mermaid\nflowchart TD\n    A[Start] --> B[Process ${activeTopic}] --> C[End]\n\`\`\``;
+      }
     } else if (detectedIntent === 'Document Generation') {
       if (queryLower.includes('car') && queryLower.includes('pdf')) {
         assistantReply = `Here is the interactive **Car PDF System Wizard**. Complete the form steps to generate your custom car catalog.\n\n[CarPDF]`;
