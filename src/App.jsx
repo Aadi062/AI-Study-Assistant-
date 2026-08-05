@@ -49,6 +49,7 @@ export default function App() {
   const [authPassword, setAuthPassword] = useState('');
   const [learningMode, setLearningMode] = useState('standard'); // 'standard' | 'socratic' | 'feynman'
   const [selectedSubject, setSelectedSubject] = useState('All Subjects');
+  const [helpTab, setHelpTab] = useState('routing');
   const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
   React.useEffect(() => {
@@ -684,71 +685,112 @@ Could not connect to backend server or webhook endpoint.
                 <div>📂 <strong>RAG Projects</strong>: Scope documents in the Projects tab to make the AI query local reference books.</div>
               </div>
 
-              <div style={{ marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
-                <span style={{ fontSize: '9.5px', textTransform: 'uppercase', color: 'var(--accent-purple-light)', fontWeight: '700', display: 'block', marginBottom: '8px', textAlign: 'left' }}>🤖 Intent recognition routing guide</span>
-                <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', textAlign: 'left' }}>
-                    <thead>
-                      <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                        <th style={{ padding: '4px' }}>Query includes</th>
-                        <th style={{ padding: '4px' }}>AI action</th>
-                        <th style={{ padding: '4px' }}>Routing process</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { trigger: 'image', action: 'Generate an image', process: 'Image Generation' },
-                        { trigger: 'flowchart', action: 'Create a flowchart', process: 'Diagram Generation' },
-                        { trigger: 'code', action: 'Generate code', process: 'Code Generation' },
-                        { trigger: 'ppt', action: 'Create a PowerPoint', process: 'Presentation Generation' },
-                        { trigger: 'pdf', action: 'Generate a PDF', process: 'Document Generation' },
-                        { trigger: 'docx', action: 'Create a Word document', process: 'Document Generation' },
-                        { trigger: 'excel', action: 'Create an Excel sheet', process: 'Spreadsheet Generation' },
-                        { trigger: 'csv', action: 'Generate CSV', process: 'Data Export' },
-                        { trigger: 'mind map', action: 'Create a mind map', process: 'Mind Map Generation' },
-                        { trigger: 'diagram', action: 'Draw a diagram', process: 'Diagram Generation' },
-                        { trigger: 'chart', action: 'Create a chart', process: 'Data Visualization' },
-                        { trigger: 'graph', action: 'Generate a graph', process: 'Graph Plotting' },
-                        { trigger: 'table', action: 'Create a table', process: 'Table Generation' },
-                        { trigger: 'sql', action: 'Generate SQL query', process: 'Database Query Generation' },
-                        { trigger: 'html', action: 'Generate HTML', process: 'Web Development' },
-                        { trigger: 'css', action: 'Generate CSS', process: 'Web Styling' },
-                        { trigger: 'javascript', action: 'Generate JavaScript', process: 'Programming' },
-                        { trigger: 'python', action: 'Generate Python', process: 'Programming' },
-                        { trigger: 'java', action: 'Generate Java', process: 'Programming' },
-                        { trigger: 'react', action: 'Generate React component', process: 'Frontend Development' },
-                        { trigger: 'api', action: 'Generate API code', process: 'Backend Development' },
-                        { trigger: 'json', action: 'Generate JSON', process: 'Data Formatting' },
-                        { trigger: 'yaml', action: 'Generate YAML', process: 'Configuration Generation' },
-                        { trigger: 'xml', action: 'Generate XML', process: 'Data Formatting' },
-                        { trigger: 'email', action: 'Write an email', process: 'Email Generation' },
-                        { trigger: 'resume', action: 'Create a resume', process: 'Resume Builder' },
-                        { trigger: 'cover letter', action: 'Generate cover letter', process: 'Job Application' },
-                        { trigger: 'blog', action: 'Write a blog', process: 'Content Generation' },
-                        { trigger: 'story', action: 'Write a story', process: 'Creative Writing' },
-                        { trigger: 'poem', action: 'Write a poem', process: 'Creative Writing' },
-                        { trigger: 'translate', action: 'Translate text', process: 'Language Translation' },
-                        { trigger: 'summarize', action: 'Summarize text', process: 'Text Summarization' },
-                        { trigger: 'quiz', action: 'Create quiz questions', process: 'Quiz Generation' },
-                        { trigger: 'mcq', action: 'Generate MCQs', process: 'Question Generation' },
-                        { trigger: 'notes', action: 'Create notes', process: 'Note Generation' },
-                        { trigger: 'roadmap', action: 'Create a roadmap', process: 'Planning' },
-                        { trigger: 'project', action: 'Generate project structure', process: 'Project Planning' },
-                        { trigger: 'ui', action: 'Design UI', process: 'UI Generation' },
-                        { trigger: 'wireframe', action: 'Create wireframe', process: 'UX Design' },
-                        { trigger: 'database', action: 'Design database schema', process: 'Database Design' },
-                        { trigger: 'erd', action: 'Create ER diagram', process: 'Database Modeling' }
-                      ].map((row, rIdx) => (
-                        <tr key={rIdx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                          <td style={{ padding: '4px', fontWeight: 'bold', color: 'white' }}>{row.trigger}</td>
-                          <td style={{ padding: '4px', color: 'var(--text-secondary)' }}>{row.action}</td>
-                          <td style={{ padding: '4px', color: 'var(--accent-purple-light)' }}>{row.process}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              {/* Tab Selector */}
+              <div style={{ display: 'flex', gap: '6px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', marginBottom: '4px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setHelpTab('routing')} 
+                  style={{ flex: 1, background: helpTab === 'routing' ? 'var(--accent-purple)' : 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', padding: '6px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  🤖 Intent Routing Matrix
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setHelpTab('capabilities')} 
+                  style={{ flex: 1, background: helpTab === 'capabilities' ? 'var(--accent-purple)' : 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', padding: '6px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  📋 Agent Capabilities
+                </button>
               </div>
+
+              {helpTab === 'routing' ? (
+                <div style={{ marginTop: '6px' }}>
+                  <span style={{ fontSize: '9.5px', textTransform: 'uppercase', color: 'var(--accent-purple-light)', fontWeight: '700', display: 'block', marginBottom: '8px', textAlign: 'left' }}>🤖 Intent recognition routing guide</span>
+                  <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                          <th style={{ padding: '4px' }}>Query includes</th>
+                          <th style={{ padding: '4px' }}>AI action</th>
+                          <th style={{ padding: '4px' }}>Routing process</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { trigger: 'image', action: 'Generate an image', process: 'Image Generation' },
+                          { trigger: 'flowchart', action: 'Create a flowchart', process: 'Diagram Generation' },
+                          { trigger: 'code', action: 'Generate code', process: 'Code Generation' },
+                          { trigger: 'ppt', action: 'Create a PowerPoint', process: 'Presentation Generation' },
+                          { trigger: 'pdf', action: 'Generate a PDF', process: 'Document Generation' },
+                          { trigger: 'docx', action: 'Create a Word document', process: 'Document Generation' },
+                          { trigger: 'excel', action: 'Create an Excel sheet', process: 'Spreadsheet Generation' },
+                          { trigger: 'csv', action: 'Generate CSV', process: 'Data Export' },
+                          { trigger: 'mind map', action: 'Create a mind map', process: 'Mind Map Generation' },
+                          { trigger: 'diagram', action: 'Draw a diagram', process: 'Diagram Generation' },
+                          { trigger: 'chart', action: 'Create a chart', process: 'Data Visualization' },
+                          { trigger: 'graph', action: 'Generate a graph', process: 'Graph Plotting' },
+                          { trigger: 'table', action: 'Create a table', process: 'Table Generation' },
+                          { trigger: 'sql', action: 'Generate SQL query', process: 'Database Query Generation' },
+                          { trigger: 'html', action: 'Generate HTML', process: 'Web Development' },
+                          { trigger: 'css', action: 'Generate CSS', process: 'Web Styling' },
+                          { trigger: 'javascript', action: 'Generate JavaScript', process: 'Programming' },
+                          { trigger: 'python', action: 'Generate Python', process: 'Programming' },
+                          { trigger: 'java', action: 'Generate Java', process: 'Programming' },
+                          { trigger: 'react', action: 'Generate React component', process: 'Frontend Development' },
+                          { trigger: 'api', action: 'Generate API code', process: 'Backend Development' },
+                          { trigger: 'json', action: 'Generate JSON', process: 'Data Formatting' },
+                          { trigger: 'yaml', action: 'Generate YAML', process: 'Configuration Generation' },
+                          { trigger: 'xml', action: 'Generate XML', process: 'Data Formatting' },
+                          { trigger: 'email', action: 'Write an email', process: 'Email Generation' },
+                          { trigger: 'resume', action: 'Create a resume', process: 'Resume Builder' },
+                          { trigger: 'cover letter', action: 'Generate cover letter', process: 'Job Application' },
+                          { trigger: 'blog', action: 'Write a blog', process: 'Content Generation' },
+                          { trigger: 'story', action: 'Write a story', process: 'Creative Writing' },
+                          { trigger: 'poem', action: 'Write a poem', process: 'Creative Writing' },
+                          { trigger: 'translate', action: 'Translate text', process: 'Language Translation' },
+                          { trigger: 'summarize', action: 'Summarize text', process: 'Text Summarization' },
+                          { trigger: 'quiz', action: 'Create quiz questions', process: 'Quiz Generation' },
+                          { trigger: 'mcq', action: 'Generate MCQs', process: 'Question Generation' },
+                          { trigger: 'notes', action: 'Create notes', process: 'Note Generation' },
+                          { trigger: 'roadmap', action: 'Create a roadmap', process: 'Planning' },
+                          { trigger: 'project', action: 'Generate project structure', process: 'Project Planning' },
+                          { trigger: 'ui', action: 'Design UI', process: 'UI Generation' },
+                          { trigger: 'wireframe', action: 'Create wireframe', process: 'UX Design' },
+                          { trigger: 'database', action: 'Design database schema', process: 'Database Design' },
+                          { trigger: 'erd', action: 'Create ER diagram', process: 'Database Modeling' }
+                        ].map((row, rIdx) => (
+                          <tr key={rIdx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                            <td style={{ padding: '4px', fontWeight: 'bold', color: 'white' }}>{row.trigger}</td>
+                            <td style={{ padding: '4px', color: 'var(--text-secondary)' }}>{row.action}</td>
+                            <td style={{ padding: '4px', color: 'var(--accent-purple-light)' }}>{row.process}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px' }}>
+                  <div>
+                    <strong style={{ color: 'var(--accent-purple-light)', fontSize: '10px', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>🛡️ Features of the AI Agent</strong>
+                    <ul style={{ margin: 0, paddingLeft: '14px', fontSize: '9.5px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      <li><strong>Intent Recognition & AI Routing:</strong> Detects intent from prompts.</li>
+                      <li><strong>Tool Calling & Function Calling:</strong> Invokes correct tools (diagram, presentation, code sandboxes).</li>
+                      <li><strong>Multimodal & Prompt Engineering:</strong> Tailors content structures dynamically.</li>
+                      <li><strong>Automated Workflows:</strong> Runs visual interactive cards with custom parameters.</li>
+                    </ul>
+                  </div>
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px' }}>
+                    <strong style={{ color: 'var(--accent-purple-light)', fontSize: '10px', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>⚙️ Functions of the AI Agent</strong>
+                    <ul style={{ margin: 0, paddingLeft: '14px', fontSize: '9.5px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      <li>Generates images and interactive flowcharts/diagrams.</li>
+                      <li>Writes code in 17 languages with direct user input terminal consoles.</li>
+                      <li>Builds PDF, DOCX, CSV sheets, ERD database schema, and timeline planners.</li>
+                      <li>Drafts emails, resumes, blogs, stories, and poems in structured editors.</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
 
               <div style={{ marginTop: '10px', fontSize: '9px', color: 'var(--text-muted)', textAlign: 'left', lineHeight: '1.4', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px' }}>
                 <strong>System Taxonomy:</strong> AI Agent • Intent Recognition • Intent Classification • Tool Calling (Tool Use) • AI Routing • Prompt Engineering • Multimodal AI • Agentic AI • Workflow Automation • Function Calling
