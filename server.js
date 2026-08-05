@@ -860,35 +860,141 @@ ${ddgData.Abstract}
       assistantReply = `Here is the exported document file for **${activeTopic}**.\n\n[Document: ${format}]\nTitle: ${activeTopic} Reference Material\nType: study_guide\nPages: 5\nSize: 142 KB\nContent: This study guide contains curriculum breakdown and core concepts regarding ${activeTopic}. Follow the guidelines to ensure complete preparation.`;
     } else if (detectedIntent === 'Code Generation') {
       let lang = 'javascript';
-      let code = `function executeTask() {\n  console.log("Running task for ${activeTopic}");\n}`;
-      let consoleOutput = 'Running task for ' + activeTopic;
-      
-      if (queryLower.includes('python')) {
-        lang = 'python';
-        code = `def execute_task():\n    print("Running task for ${activeTopic}")\n\nexecute_task()`;
-        consoleOutput = 'Running task for ' + activeTopic;
-      } else if (queryLower.includes('c code') || queryLower.includes('in c') || queryLower.includes('language c')) {
-        lang = 'c';
-        if (queryLower.includes('1 to 10') || queryLower.includes('1-10')) {
-          code = `#include <stdio.h>\n\nint main() {\n    int i;\n    for(i = 1; i <= 10; i++) {\n        printf("%d\\n", i);\n    }\n    return 0;\n}`;
-          consoleOutput = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
-        } else {
-          code = `#include <stdio.h>\n\nint main() {\n    printf("Running task for ${activeTopic}\\n");\n    return 0;\n}`;
-          consoleOutput = 'Running task for ' + activeTopic;
-        }
-      } else if (queryLower.includes('html')) {
-        lang = 'html';
-        code = `<div class="card">\n  <h3>${activeTopic}</h3>\n  <button onclick="alert('Clicked')">Submit</button>\n</div>`;
-        consoleOutput = 'Rendered HTML layout successfully';
-      } else if (queryLower.includes('css')) {
-        lang = 'css';
-        code = `.card {\n  background: rgba(255,255,255,0.05);\n  border: 1px solid var(--border-color);\n  padding: 16px;\n}`;
-        consoleOutput = 'Compiled CSS rules successfully';
-      } else if (queryLower.includes('sql')) {
-        lang = 'sql';
-        code = `SELECT * FROM study_topics WHERE name = '${activeTopic}' LIMIT 1;`;
-        consoleOutput = `Table Results:\nID | Name | Difficulty\n1 | ${activeTopic} | High`;
+      const languages = [
+        { name: 'javascript', keywords: ['javascript', 'js', 'node'] },
+        { name: 'typescript', keywords: ['typescript', 'ts'] },
+        { name: 'python', keywords: ['python', 'py'] },
+        { name: 'java', keywords: ['java'] },
+        { name: 'c++', keywords: ['c++', 'cpp', 'c plus plus'] },
+        { name: 'c#', keywords: ['c#', 'csharp', 'c sharp'] },
+        { name: 'c', keywords: ['c code', 'language c', 'in c'] },
+        { name: 'ruby', keywords: ['ruby', 'rb'] },
+        { name: 'go', keywords: ['go code', 'golang', 'go lang'] },
+        { name: 'rust', keywords: ['rust', 'rs'] },
+        { name: 'php', keywords: ['php'] },
+        { name: 'swift', keywords: ['swift'] },
+        { name: 'kotlin', keywords: ['kotlin'] },
+        { name: 'r', keywords: ['r code', 'language r'] },
+        { name: 'html', keywords: ['html'] },
+        { name: 'css', keywords: ['css'] },
+        { name: 'sql', keywords: ['sql'] }
+      ];
+
+      const detectedLang = languages.find(l => l.keywords.some(k => queryLower.includes(k)));
+      if (detectedLang) {
+        lang = detectedLang.name;
       }
+
+      let code = ``;
+      let consoleOutput = ``;
+      const isOneToTen = queryLower.includes('1 to 10') || queryLower.includes('1-10');
+
+      if (isOneToTen) {
+        consoleOutput = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
+        switch (lang) {
+          case 'javascript':
+          case 'typescript':
+            code = `for (let i = 1; i <= 10; i++) {\n  console.log(i);\n}`;
+            break;
+          case 'python':
+            code = `for i in range(1, 11):\n    print(i)`;
+            break;
+          case 'java':
+            code = `public class PrintNumbers {\n    public static void main(String[] args) {\n        for (int i = 1; i <= 10; i++) {\n            System.out.println(i);\n        }\n    }\n}`;
+            break;
+          case 'c++':
+            code = `#include <iostream>\nusing namespace std;\n\nint main() {\n    for (int i = 1; i <= 10; i++) {\n        cout << i << endl;\n    }\n    return 0;\n}`;
+            break;
+          case 'c#':
+            code = `using System;\n\nclass PrintNumbers {\n    static void Main() {\n        for (int i = 1; i <= 10; i++) {\n            Console.WriteLine(i);\n        }\n    }\n}`;
+            break;
+          case 'c':
+            code = `#include <stdio.h>\n\nint main() {\n    int i;\n    for (i = 1; i <= 10; i++) {\n        printf("%d\\n", i);\n    }\n    return 0;\n}`;
+            break;
+          case 'ruby':
+            code = `(1..10).each { |i| puts i }`;
+            break;
+          case 'go':
+            code = `package main\n\nimport "fmt"\n\nfunc main() {\n    for i := 1; i <= 10; i++ {\n        fmt.Println(i)\n    }\n}`;
+            break;
+          case 'rust':
+            code = `fn main() {\n    for i in 1..=10 {\n        println!("{}", i);\n    }\n}`;
+            break;
+          case 'php':
+            code = `<?php\nfor ($i = 1; $i <= 10; $i++) {\n    echo $i . "\\n";\n}\n?>`;
+            break;
+          case 'swift':
+            code = `for i in 1...10 {\n    print(i)\n}`;
+            break;
+          case 'kotlin':
+            code = `fun main() {\n    for (i in 1..10) {\n        println(i)\n    }\n}`;
+            break;
+          case 'r':
+            code = `for (i in 1:10) {\n  print(i)\n}`;
+            break;
+          default:
+            code = `// Print 1 to 10\nfor (let i = 1; i <= 10; i++) {\n  console.log(i);\n}`;
+        }
+      } else {
+        consoleOutput = 'Running task for ' + activeTopic;
+        switch (lang) {
+          case 'javascript':
+          case 'typescript':
+            code = `function executeTask() {\n  console.log("Running task for ${activeTopic}");\n}\nexecuteTask();`;
+            break;
+          case 'python':
+            code = `def execute_task():\n    print("Running task for ${activeTopic}")\n\nexecute_task()`;
+            break;
+          case 'java':
+            code = `public class StudyTask {\n    public static void main(String[] args) {\n        System.out.println("Running task for ${activeTopic}");\n    }\n}`;
+            break;
+          case 'c++':
+            code = `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Running task for ${activeTopic}" << endl;\n    return 0;\n}`;
+            break;
+          case 'c#':
+            code = `using System;\nclass StudyTask {\n    static void Main() {\n        Console.WriteLine("Running task for ${activeTopic}");\n    }\n}`;
+            break;
+          case 'c':
+            code = `#include <stdio.h>\nint main() {\n    printf("Running task for ${activeTopic}\\n");\n    return 0;\n}`;
+            break;
+          case 'ruby':
+            code = `puts "Running task for ${activeTopic}"`;
+            break;
+          case 'go':
+            code = `package main\nimport "fmt"\nfunc main() {\n    fmt.Println("Running task for ${activeTopic}")\n}`;
+            break;
+          case 'rust':
+            code = `fn main() {\n    println!("Running task for ${activeTopic}");\n}`;
+            break;
+          case 'php':
+            code = `<?php echo "Running task for ${activeTopic}\\n"; ?>`;
+            break;
+          case 'swift':
+            code = `print("Running task for ${activeTopic}")`;
+            break;
+          case 'kotlin':
+            code = `fun main() { println("Running task for ${activeTopic}") }`;
+            break;
+          case 'r':
+            code = `print("Running task for ${activeTopic}")`;
+            break;
+          case 'html':
+            code = `<div class="card">\n  <h3>${activeTopic}</h3>\n  <button onclick="alert('Clicked')">Submit</button>\n</div>`;
+            consoleOutput = 'Rendered HTML layout successfully';
+            break;
+          case 'css':
+            code = `.card {\n  background: rgba(255,255,255,0.05);\n  border: 1px solid var(--border-color);\n  padding: 16px;\n}`;
+            consoleOutput = 'Compiled CSS rules successfully';
+            break;
+          case 'sql':
+            code = `SELECT * FROM study_topics WHERE name = '${activeTopic}' LIMIT 1;`;
+            consoleOutput = `Table Results:\nID | Name | Difficulty\n1 | ${activeTopic} | High`;
+            break;
+          default:
+            code = `function executeTask() {\n  console.log("Running task for ${activeTopic}");\n}\nexecuteTask();`;
+        }
+      }
+
       assistantReply = `Here is the generated code structure for **${activeTopic}**.\n\n[Code: ${lang}]\n${code}\n[Console]\n${consoleOutput}`;
     } else if (detectedIntent === 'Project Structure') {
       assistantReply = `Here is the directory file tree for project **${activeTopic}**.\n\n[Project]\nsrc/components/Card.jsx\nsrc/components/Header.jsx\nsrc/App.jsx\nsrc/index.css\npublic/favicon.svg\npackage.json\nREADME.md`;
