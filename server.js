@@ -54,6 +54,7 @@ app.post('/api/chat', async (req, res) => {
 
   let assistantReply = '';
   let path = 'B'; // default Path B (New)
+  let fallbackToMock = false;
   
   // Lookup session history to check if it's path A or B
   const sessions = getSessions();
@@ -144,7 +145,8 @@ app.post('/api/chat', async (req, res) => {
   // ----------------------------------------------------
   if (chatMode === 'gemini') {
     if (!apiKey || apiKey.trim() === '') {
-      return res.status(400).json({ error: 'Gemini API Key is missing. Configure it in the settings panel.' });
+      console.log("Gemini API key is missing. Falling back to Mock mode.");
+      fallbackToMock = true;
     }
 
     try {
@@ -336,23 +338,23 @@ If the student asks for a study plan or schedule, generate a day-by-day structur
       return res.json({ reply: assistantReply, path, agentLogs, sources });
 
     } catch (err) {
-      console.error(err);
+      console.error("Gemini Mode failed, falling back to Mock:", err);
       addLog({
         status: 'failed',
         version: 'Gemini-Flash-RAG',
         duration: Date.now() - startTime,
         path,
         query: message,
-        response: `Error: ${err.message}`
+        response: `Error: ${err.message} (Falling back to Mock)`
       });
-      return res.status(500).json({ error: err.message });
+      fallbackToMock = true;
     }
   }
 
   // ----------------------------------------------------
   // MODE 2: WEBHOOK REROUTING (Relay/n8n link)
   // ----------------------------------------------------
-  if (chatMode === 'webhook') {
+  if (chatMode === 'webhook' && !fallbackToMock) {
     try {
       const webhookUrl = 'https://hook.relay.app/api/v1/playbook/cmrlcnmxl0dvg0pm00rsf' + activeVersion;
       const response = await fetch(webhookUrl, {
@@ -394,23 +396,23 @@ If the student asks for a study plan or schedule, generate a day-by-day structur
       return res.json({ reply: assistantReply, path });
 
     } catch (err) {
-      console.error(err);
+      console.error("Webhook Mode failed, falling back to Mock:", err);
       addLog({
         status: 'failed',
         version: activeVersion,
         duration: Date.now() - startTime,
         path,
         query: message,
-        response: `Error: ${err.message}`
+        response: `Error: ${err.message} (Falling back to Mock)`
       });
-      return res.status(502).json({ error: `Connection to n8n webhook failed: ${err.message}` });
+      fallbackToMock = true;
     }
   }
 
   // ----------------------------------------------------
           // MODE 3: MOCK SIMULATION (DuckDuckGo fallback & custom guides)
   // ----------------------------------------------------
-  if (chatMode === 'mock') {
+  if (chatMode === 'mock' || fallbackToMock) {
     const message = targetQuery;
     const queryLower = targetQuery.toLowerCase();
     // Exact subject match checks
