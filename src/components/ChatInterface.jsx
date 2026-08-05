@@ -364,6 +364,9 @@ export default function ChatInterface({
     const isDocExport = msg.text.includes('[Document:');
     if (isDocExport) return <DocumentExportCard text={msg.text} />;
 
+    const isCarPdf = msg.text.includes('[CarPDF]');
+    if (isCarPdf) return <CarPdfWizardCard text={msg.text} />;
+
     const isCodeConsole = msg.text.includes('[Code:');
     if (isCodeConsole) return <CodeConsoleCard text={msg.text} />;
 
@@ -1540,6 +1543,203 @@ function TreeSchemaCard({ text }) {
             <code>{rawData.trim()}</code>
           </pre>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// 13. Interactive Car PDF System Wizard
+function CarPdfWizardCard({ text }) {
+  const [step, setStep] = useState(1); // 1: Details, 2: Specs, 3: Image, 4: Validate, 5: Save/Download
+  
+  // Form State
+  const [carName, setCarName] = useState('GT-R');
+  const [carModel, setCarModel] = useState('R35');
+  const [carBrand, setCarBrand] = useState('Nissan');
+  const [carYear, setCarYear] = useState('2024');
+
+  const [engine, setEngine] = useState('3.8L Twin-Turbo V6');
+  const [mileage, setMileage] = useState('18 mpg');
+  const [fuel, setFuel] = useState('Gasoline');
+  const [price, setPrice] = useState('$121,000');
+
+  const [selectedImage, setSelectedImage] = useState('modified_car.jpg');
+
+  const cleanText = text.replace(/\[CarPDF\]/g, '').trim();
+
+  const handleDownload = () => {
+    const content = `=========================================
+CAR CATALOG: ${carBrand.toUpperCase()} ${carName.toUpperCase()}
+=========================================
+Vehicle Details:
+- Brand: ${carBrand}
+- Name: ${carName}
+- Model: ${carModel}
+- Year: ${carYear}
+
+Technical Specifications:
+- Engine: ${engine}
+- Fuel Type: ${fuel}
+- Fuel Economy: ${mileage}
+- MSRP Price: ${price}
+
+Image Reference:
+- Illustration Source: ${selectedImage}
+=========================================
+Generated successfully via AI Agent Car PDF System.
+`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${carBrand}_${carName}_Catalog.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      <div className="glass-panel" style={{ background: 'rgba(15,23,42,0.6)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '16px', width: '100%', textAlign: 'left' }}>
+        
+        {/* Title / Flow Progress */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', marginBottom: '12px' }}>
+          <span style={{ fontSize: '9px', color: 'var(--accent-purple-light)', fontWeight: '800', textTransform: 'uppercase' }}>🚗 Car PDF System Wizard</span>
+          <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Step {step} of 5</span>
+        </div>
+
+        {/* Step 1: Car Details */}
+        {step === 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span style={{ fontSize: '10px', color: 'white', fontWeight: 'bold' }}>Enter Car Details</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <label style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Brand</label>
+                <input type="text" value={carBrand} onChange={(e) => setCarBrand(e.target.value)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px', borderRadius: '4px', color: 'white', fontSize: '10px', width: '100%' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <label style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Name</label>
+                <input type="text" value={carName} onChange={(e) => setCarName(e.target.value)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px', borderRadius: '4px', color: 'white', fontSize: '10px', width: '100%' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <label style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Model</label>
+                <input type="text" value={carModel} onChange={(e) => setCarModel(e.target.value)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px', borderRadius: '4px', color: 'white', fontSize: '10px', width: '100%' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <label style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Year</label>
+                <input type="text" value={carYear} onChange={(e) => setCarYear(e.target.value)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px', borderRadius: '4px', color: 'white', fontSize: '10px', width: '100%' }} />
+              </div>
+            </div>
+            <button type="button" onClick={() => setStep(2)} style={{ background: 'var(--accent-purple)', color: 'white', border: 'none', padding: '6px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px', textAlign: 'center' }}>Next Step</button>
+          </div>
+        )}
+
+        {/* Step 2: Specs */}
+        {step === 2 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span style={{ fontSize: '10px', color: 'white', fontWeight: 'bold' }}>Enter Specifications</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <label style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Engine</label>
+                <input type="text" value={engine} onChange={(e) => setEngine(e.target.value)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px', borderRadius: '4px', color: 'white', fontSize: '10px', width: '100%' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <label style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Fuel Type</label>
+                <input type="text" value={fuel} onChange={(e) => setFuel(e.target.value)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px', borderRadius: '4px', color: 'white', fontSize: '10px', width: '100%' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <label style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Mileage</label>
+                <input type="text" value={mileage} onChange={(e) => setMileage(e.target.value)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px', borderRadius: '4px', color: 'white', fontSize: '10px', width: '100%' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <label style={{ fontSize: '8px', color: 'var(--text-muted)' }}>Price</label>
+                <input type="text" value={price} onChange={(e) => setPrice(e.target.value)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px', borderRadius: '4px', color: 'white', fontSize: '10px', width: '100%' }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <button type="button" onClick={() => setStep(1)} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '6px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer' }}>Back</button>
+              <button type="button" onClick={() => setStep(3)} style={{ flex: 1, background: 'var(--accent-purple)', color: 'white', border: 'none', padding: '6px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Next</button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Images */}
+        {step === 3 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span style={{ fontSize: '10px', color: 'white', fontWeight: 'bold' }}>Add Car Images</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', margin: '4px 0' }}>
+              <div 
+                onClick={() => setSelectedImage('modified_car.jpg')}
+                style={{ 
+                  borderRadius: '8px', 
+                  border: selectedImage === 'modified_car.jpg' ? '2px solid var(--accent-purple-light)' : '1px solid rgba(255,255,255,0.08)',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  background: 'rgba(0,0,0,0.2)'
+                }}
+              >
+                <img src="/modified_car.jpg" style={{ width: '100%', height: '50px', objectFit: 'cover' }} alt="Modified Car" />
+                <div style={{ fontSize: '8px', padding: '3px', textAlign: 'center', color: 'white' }}>Modified Sports Car</div>
+              </div>
+              <div 
+                onClick={() => setSelectedImage('media__1785690174675.png')}
+                style={{ 
+                  borderRadius: '8px', 
+                  border: selectedImage === 'media__1785690174675.png' ? '2px solid var(--accent-purple-light)' : '1px solid rgba(255,255,255,0.08)',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  background: 'rgba(0,0,0,0.2)'
+                }}
+              >
+                <img src="/media__1785690174675.png" style={{ width: '100%', height: '50px', objectFit: 'cover' }} alt="Civic Build" />
+                <div style={{ fontSize: '8px', padding: '3px', textAlign: 'center', color: 'white' }}>Civic Track Build</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <button type="button" onClick={() => setStep(2)} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '6px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer' }}>Back</button>
+              <button type="button" onClick={() => setStep(4)} style={{ flex: 1, background: 'var(--accent-purple)', color: 'white', border: 'none', padding: '6px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Next</button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Validate */}
+        {step === 4 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span style={{ fontSize: '10px', color: 'white', fontWeight: 'bold' }}>Validate Information</span>
+            
+            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px', fontSize: '9px', display: 'flex', flexDirection: 'column', gap: '4px', color: '#e2e8f0' }}>
+              <div><strong>Car:</strong> {carBrand} {carName} ({carModel} - {carYear})</div>
+              <div><strong>Specs:</strong> {engine} | {fuel} | {mileage} | {price}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                <strong>Image:</strong>
+                <img src={`/${selectedImage}`} style={{ width: '32px', height: '20px', objectFit: 'cover', borderRadius: '4px' }} alt="selected" />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <button type="button" onClick={() => setStep(1)} style={{ flex: 1, background: '#ef4444', border: 'none', color: 'white', padding: '6px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'center' }}>❌ Correct Info</button>
+              <button type="button" onClick={() => setStep(5)} style={{ flex: 1, background: '#10b981', border: 'none', color: 'white', padding: '6px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'center' }}>✔️ Generate PDF</button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 5: Save & Download */}
+        {step === 5 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', border: '1px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontSize: '18px', marginBottom: '4px' }}>
+              ✓
+            </div>
+            <span style={{ fontSize: '11px', color: 'white', fontWeight: 'bold' }}>PDF Catalog Generated!</span>
+            <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{carBrand}_{carName}_Catalog.pdf</span>
+            
+            <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '10px' }}>
+              <button type="button" onClick={() => setStep(1)} style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '6px', borderRadius: '6px', fontSize: '9.5px', cursor: 'pointer' }}>Create Another</button>
+              <button type="button" onClick={handleDownload} style={{ flex: 1, background: 'var(--accent-purple)', border: 'none', color: 'white', padding: '6px', borderRadius: '6px', fontSize: '9.5px', fontWeight: 'bold', cursor: 'pointer' }}>Download PDF</button>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

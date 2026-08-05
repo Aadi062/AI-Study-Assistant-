@@ -858,8 +858,12 @@ ${ddgData.Abstract}
 
       assistantReply = `Here is the generated image illustration for **${activeTopic}**.\n\n[Image: ${imageUrl}]`;
     } else if (detectedIntent === 'Document Generation') {
-      const format = queryLower.includes('pdf') ? 'pdf' : 'docx';
-      assistantReply = `Here is the exported document file for **${activeTopic}**.\n\n[Document: ${format}]\nTitle: ${activeTopic} Reference Material\nType: study_guide\nPages: 5\nSize: 142 KB\nContent: This study guide contains curriculum breakdown and core concepts regarding ${activeTopic}. Follow the guidelines to ensure complete preparation.`;
+      if (queryLower.includes('car') && queryLower.includes('pdf')) {
+        assistantReply = `Here is the interactive **Car PDF System Wizard**. Complete the form steps to generate your custom car catalog.\n\n[CarPDF]`;
+      } else {
+        const format = queryLower.includes('pdf') ? 'pdf' : 'docx';
+        assistantReply = `Here is the exported document file for **${activeTopic}**.\n\n[Document: ${format}]\nTitle: ${activeTopic} Reference Material\nType: study_guide\nPages: 5\nSize: 142 KB\nContent: This study guide contains curriculum breakdown and core concepts regarding ${activeTopic}. Follow the guidelines to ensure complete preparation.`;
+      }
     } else if (detectedIntent === 'Code Generation') {
       let lang = 'javascript';
       const languages = [
