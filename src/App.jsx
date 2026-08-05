@@ -686,7 +686,7 @@ Could not connect to backend server or webhook endpoint.
 
               <div style={{ marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
                 <span style={{ fontSize: '9.5px', textTransform: 'uppercase', color: 'var(--accent-purple-light)', fontWeight: '700', display: 'block', marginBottom: '8px', textAlign: 'left' }}>🤖 Intent recognition routing guide</span>
-                <div style={{ maxHeight: '130px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px' }}>
+                <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', textAlign: 'left' }}>
                     <thead>
                       <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
@@ -697,12 +697,47 @@ Could not connect to backend server or webhook endpoint.
                     </thead>
                     <tbody>
                       {[
-                        { trigger: 'ppt / presentation', action: 'Generate Slide Deck', process: 'Presentation Tool' },
-                        { trigger: 'excel / spreadsheet', action: 'Create Data Grid', process: 'Spreadsheet Excel Tool' },
-                        { trigger: 'roadmap / timeline', action: 'Draw Timeline Checklist', process: 'Roadmap Planner' },
-                        { trigger: 'erd / schema', action: 'Model Database ERD', process: 'Designer Schema Tool' },
-                        { trigger: 'chart / graph', action: 'Render SVG Graph', process: 'Visualization Tool' },
-                        { trigger: 'image / picture', action: 'Draw Illustration', process: 'Image Generator Tool' }
+                        { trigger: 'image', action: 'Generate an image', process: 'Image Generation' },
+                        { trigger: 'flowchart', action: 'Create a flowchart', process: 'Diagram Generation' },
+                        { trigger: 'code', action: 'Generate code', process: 'Code Generation' },
+                        { trigger: 'ppt', action: 'Create a PowerPoint', process: 'Presentation Generation' },
+                        { trigger: 'pdf', action: 'Generate a PDF', process: 'Document Generation' },
+                        { trigger: 'docx', action: 'Create a Word document', process: 'Document Generation' },
+                        { trigger: 'excel', action: 'Create an Excel sheet', process: 'Spreadsheet Generation' },
+                        { trigger: 'csv', action: 'Generate CSV', process: 'Data Export' },
+                        { trigger: 'mind map', action: 'Create a mind map', process: 'Mind Map Generation' },
+                        { trigger: 'diagram', action: 'Draw a diagram', process: 'Diagram Generation' },
+                        { trigger: 'chart', action: 'Create a chart', process: 'Data Visualization' },
+                        { trigger: 'graph', action: 'Generate a graph', process: 'Graph Plotting' },
+                        { trigger: 'table', action: 'Create a table', process: 'Table Generation' },
+                        { trigger: 'sql', action: 'Generate SQL query', process: 'Database Query Generation' },
+                        { trigger: 'html', action: 'Generate HTML', process: 'Web Development' },
+                        { trigger: 'css', action: 'Generate CSS', process: 'Web Styling' },
+                        { trigger: 'javascript', action: 'Generate JavaScript', process: 'Programming' },
+                        { trigger: 'python', action: 'Generate Python', process: 'Programming' },
+                        { trigger: 'java', action: 'Generate Java', process: 'Programming' },
+                        { trigger: 'react', action: 'Generate React component', process: 'Frontend Development' },
+                        { trigger: 'api', action: 'Generate API code', process: 'Backend Development' },
+                        { trigger: 'json', action: 'Generate JSON', process: 'Data Formatting' },
+                        { trigger: 'yaml', action: 'Generate YAML', process: 'Configuration Generation' },
+                        { trigger: 'xml', action: 'Generate XML', process: 'Data Formatting' },
+                        { trigger: 'email', action: 'Write an email', process: 'Email Generation' },
+                        { trigger: 'resume', action: 'Create a resume', process: 'Resume Builder' },
+                        { trigger: 'cover letter', action: 'Generate cover letter', process: 'Job Application' },
+                        { trigger: 'blog', action: 'Write a blog', process: 'Content Generation' },
+                        { trigger: 'story', action: 'Write a story', process: 'Creative Writing' },
+                        { trigger: 'poem', action: 'Write a poem', process: 'Creative Writing' },
+                        { trigger: 'translate', action: 'Translate text', process: 'Language Translation' },
+                        { trigger: 'summarize', action: 'Summarize text', process: 'Text Summarization' },
+                        { trigger: 'quiz', action: 'Create quiz questions', process: 'Quiz Generation' },
+                        { trigger: 'mcq', action: 'Generate MCQs', process: 'Question Generation' },
+                        { trigger: 'notes', action: 'Create notes', process: 'Note Generation' },
+                        { trigger: 'roadmap', action: 'Create a roadmap', process: 'Planning' },
+                        { trigger: 'project', action: 'Generate project structure', process: 'Project Planning' },
+                        { trigger: 'ui', action: 'Design UI', process: 'UI Generation' },
+                        { trigger: 'wireframe', action: 'Create wireframe', process: 'UX Design' },
+                        { trigger: 'database', action: 'Design database schema', process: 'Database Design' },
+                        { trigger: 'erd', action: 'Create ER diagram', process: 'Database Modeling' }
                       ].map((row, rIdx) => (
                         <tr key={rIdx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                           <td style={{ padding: '4px', fontWeight: 'bold', color: 'white' }}>{row.trigger}</td>
@@ -713,6 +748,10 @@ Could not connect to backend server or webhook endpoint.
                     </tbody>
                   </table>
                 </div>
+              </div>
+
+              <div style={{ marginTop: '10px', fontSize: '9px', color: 'var(--text-muted)', textAlign: 'left', lineHeight: '1.4', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px' }}>
+                <strong>System Taxonomy:</strong> AI Agent • Intent Recognition • Intent Classification • Tool Calling (Tool Use) • AI Routing • Prompt Engineering • Multimodal AI • Agentic AI • Workflow Automation • Function Calling
               </div>
             </div>
           )}
