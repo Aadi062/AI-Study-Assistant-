@@ -867,6 +867,15 @@ ${ddgData.Abstract}
         lang = 'python';
         code = `def execute_task():\n    print("Running task for ${activeTopic}")\n\nexecute_task()`;
         consoleOutput = 'Running task for ' + activeTopic;
+      } else if (queryLower.includes('c code') || queryLower.includes('in c') || queryLower.includes('language c')) {
+        lang = 'c';
+        if (queryLower.includes('1 to 10') || queryLower.includes('1-10')) {
+          code = `#include <stdio.h>\n\nint main() {\n    int i;\n    for(i = 1; i <= 10; i++) {\n        printf("%d\\n", i);\n    }\n    return 0;\n}`;
+          consoleOutput = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10";
+        } else {
+          code = `#include <stdio.h>\n\nint main() {\n    printf("Running task for ${activeTopic}\\n");\n    return 0;\n}`;
+          consoleOutput = 'Running task for ' + activeTopic;
+        }
       } else if (queryLower.includes('html')) {
         lang = 'html';
         code = `<div class="card">\n  <h3>${activeTopic}</h3>\n  <button onclick="alert('Clicked')">Submit</button>\n</div>`;
