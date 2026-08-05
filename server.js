@@ -768,6 +768,36 @@ ${ddgData.Abstract}
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Rose';
       detectedIntent = 'Image Generation';
       routedTool = 'Image Generator Tool';
+    } else if (queryLower.includes('pdf') || queryLower.includes('docx') || queryLower.includes('word')) {
+      const topicRaw = message.replace(/give me a|generate a|pdf for|docx for|word document for/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Study Syllabus';
+      detectedIntent = 'Document Generation';
+      routedTool = 'Document Export Tool';
+    } else if (queryLower.includes('code') || queryLower.includes('javascript') || queryLower.includes('js') || queryLower.includes('python') || queryLower.includes('java') || queryLower.includes('react') || queryLower.includes('api') || queryLower.includes('html') || queryLower.includes('css') || queryLower.includes('sql') || queryLower.includes('programming')) {
+      const topicRaw = message.replace(/give me|generate|write|code for|javascript code for|python code for|sql code for|html page for/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Binary Search Algorithm';
+      detectedIntent = 'Code Generation';
+      routedTool = 'Code Generator Tool';
+    } else if (queryLower.includes('project') || queryLower.includes('directory') || queryLower.includes('folder')) {
+      const topicRaw = message.replace(/give me a|generate a|project structure for|folder structure for/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'React Application';
+      detectedIntent = 'Project Structure';
+      routedTool = 'Project Structure Tool';
+    } else if (queryLower.includes('ui') || queryLower.includes('wireframe') || queryLower.includes('mockup')) {
+      const topicRaw = message.replace(/give me a|generate a|wireframe of|mockup of|ui for/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Login Page Dashboard';
+      detectedIntent = 'UI Wireframe';
+      routedTool = 'UI Designer Tool';
+    } else if (queryLower.includes('email') || queryLower.includes('resume') || queryLower.includes('cover letter') || queryLower.includes('blog') || queryLower.includes('story') || queryLower.includes('poem') || queryLower.includes('notes') || queryLower.includes('summarize') || queryLower.includes('translate')) {
+      const topicRaw = message.replace(/give me an|write an|draft an|email to|resume for|cover letter for|blog on|story about/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Subject Revision Summary';
+      detectedIntent = 'Writer Editor';
+      routedTool = 'Content Writer Tool';
+    } else if (queryLower.includes('json') || queryLower.includes('yaml') || queryLower.includes('xml')) {
+      const topicRaw = message.replace(/give me|generate|json for|yaml for|xml for/gi, '').trim();
+      activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Configuration Data';
+      detectedIntent = 'Data Formatting';
+      routedTool = 'Data Validator Tool';
     } else {
       const topicRaw = message.replace(/what is|explain|tell me about|how does|define|who is|who was/gi, '').trim();
       activeTopic = topicRaw.charAt(0).toUpperCase() + topicRaw.slice(1) || 'Academic Concept';
@@ -825,6 +855,47 @@ ${ddgData.Abstract}
       }
 
       assistantReply = `Here is the generated image illustration for **${activeTopic}**.\n\n[Image: ${imageUrl}]`;
+    } else if (detectedIntent === 'Document Generation') {
+      const format = queryLower.includes('pdf') ? 'pdf' : 'docx';
+      assistantReply = `Here is the exported document file for **${activeTopic}**.\n\n[Document: ${format}]\nTitle: ${activeTopic} Reference Material\nType: study_guide\nPages: 5\nSize: 142 KB\nContent: This study guide contains curriculum breakdown and core concepts regarding ${activeTopic}. Follow the guidelines to ensure complete preparation.`;
+    } else if (detectedIntent === 'Code Generation') {
+      let lang = 'javascript';
+      let code = `function executeTask() {\n  console.log("Running task for ${activeTopic}");\n}`;
+      let consoleOutput = 'Running task for ' + activeTopic;
+      
+      if (queryLower.includes('python')) {
+        lang = 'python';
+        code = `def execute_task():\n    print("Running task for ${activeTopic}")\n\nexecute_task()`;
+        consoleOutput = 'Running task for ' + activeTopic;
+      } else if (queryLower.includes('html')) {
+        lang = 'html';
+        code = `<div class="card">\n  <h3>${activeTopic}</h3>\n  <button onclick="alert('Clicked')">Submit</button>\n</div>`;
+        consoleOutput = 'Rendered HTML layout successfully';
+      } else if (queryLower.includes('css')) {
+        lang = 'css';
+        code = `.card {\n  background: rgba(255,255,255,0.05);\n  border: 1px solid var(--border-color);\n  padding: 16px;\n}`;
+        consoleOutput = 'Compiled CSS rules successfully';
+      } else if (queryLower.includes('sql')) {
+        lang = 'sql';
+        code = `SELECT * FROM study_topics WHERE name = '${activeTopic}' LIMIT 1;`;
+        consoleOutput = `Table Results:\nID | Name | Difficulty\n1 | ${activeTopic} | High`;
+      }
+      assistantReply = `Here is the generated code structure for **${activeTopic}**.\n\n[Code: ${lang}]\n${code}\n[Console]\n${consoleOutput}`;
+    } else if (detectedIntent === 'Project Structure') {
+      assistantReply = `Here is the directory file tree for project **${activeTopic}**.\n\n[Project]\nsrc/components/Card.jsx\nsrc/components/Header.jsx\nsrc/App.jsx\nsrc/index.css\npublic/favicon.svg\npackage.json\nREADME.md`;
+    } else if (detectedIntent === 'UI Wireframe') {
+      assistantReply = `Here is the wireframe structure details for **${activeTopic}**.\n\n[UI]\nTitle: ${activeTopic} Wireframe\nInputs: text|Enter topic name, email|Enter email address\nButtons: Submit Primary, Cancel Secondary\nToggles: Dark Mode, Notifications`;
+    } else if (detectedIntent === 'Writer Editor') {
+      assistantReply = `Here is the drafted content for **${activeTopic}**.\n\n[Editor]\nSubject: ${activeTopic} Revision Notes\n\nThis document summarizes key points about ${activeTopic}. Please review it for your upcoming exams.\n\nKey Concepts:\n1. Core terminology definitions.\n2. Standard operational methods.\n3. Detailed synthesis guidelines.\n\nSincerely,\nAI Assistant`;
+    } else if (detectedIntent === 'Data Formatting') {
+      const format = queryLower.includes('json') ? 'json' : (queryLower.includes('yaml') ? 'yaml' : 'xml');
+      let dataText = `{ "topic": "${activeTopic}", "status": "validated", "timestamp": "${new Date().toISOString()}" }`;
+      if (format === 'yaml') {
+        dataText = `topic: "${activeTopic}"\nstatus: "validated"\ntimestamp: "${new Date().toISOString()}"`;
+      } else if (format === 'xml') {
+        dataText = `<data>\n  <topic>${activeTopic}</topic>\n  <status>validated</status>\n</data>`;
+      }
+      assistantReply = `Here is the formatted structure representation for **${activeTopic}**.\n\n[Tree: ${format}]\n${dataText}`;
     }
 
     if (isDeepResearch) {

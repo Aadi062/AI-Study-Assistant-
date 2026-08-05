@@ -361,6 +361,24 @@ export default function ChatInterface({
       return <ImageCard src={imgSrc} text={msg.text} />;
     }
 
+    const isDocExport = msg.text.includes('[Document:');
+    if (isDocExport) return <DocumentExportCard text={msg.text} />;
+
+    const isCodeConsole = msg.text.includes('[Code:');
+    if (isCodeConsole) return <CodeConsoleCard text={msg.text} />;
+
+    const isProjectExplorer = msg.text.includes('[Project]');
+    if (isProjectExplorer) return <ProjectExplorerCard text={msg.text} />;
+
+    const isUiMockup = msg.text.includes('[UI]');
+    if (isUiMockup) return <UiMockupCard text={msg.text} />;
+
+    const isDocEditor = msg.text.includes('[Editor]');
+    if (isDocEditor) return <DocumentEditorCard text={msg.text} />;
+
+    const isTreeSchema = msg.text.includes('[Tree:');
+    if (isTreeSchema) return <TreeSchemaCard text={msg.text} />;
+
     const isFlashcards = msg.text.includes('### Flashcards') || msg.text.includes('Front:') || msg.text.includes('Back:');
     
     if (isFlashcards) {
@@ -1194,6 +1212,247 @@ function ImageCard({ src, text }) {
         <span style={{ fontSize: '8.5px', color: 'var(--text-muted)' }}>
           {subtitle}
         </span>
+      </div>
+    </div>
+  );
+}
+
+// 7. Code Console Runner Card
+function CodeConsoleCard({ text }) {
+  const [activeTab, setActiveTab] = useState('code');
+  const cleanText = text.split('[Code:')[0].trim();
+  const block = text.split('[Code:')[1] || '';
+  const lang = block.split(']')[0] || 'javascript';
+  const codeContent = block.split(']')[1]?.split('[Console]')[0]?.trim() || '';
+  const consoleOutput = block.split('[Console]')[1]?.trim() || '';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(codeContent);
+    alert('Code copied to clipboard!');
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      <div className="glass-panel" style={{ background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="button" onClick={() => setActiveTab('code')} style={{ background: activeTab === 'code' ? 'rgba(255,255,255,0.08)' : 'none', border: 'none', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '9.5px', cursor: 'pointer', fontWeight: 'bold' }}>Source ({lang})</button>
+            <button type="button" onClick={() => setActiveTab('console')} style={{ background: activeTab === 'console' ? 'rgba(255,255,255,0.08)' : 'none', border: 'none', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '9.5px', cursor: 'pointer', fontWeight: 'bold' }}>Console Output</button>
+          </div>
+          <button type="button" onClick={handleCopy} style={{ background: 'none', border: 'none', color: 'var(--accent-purple-light)', cursor: 'pointer', fontSize: '9.5px', fontWeight: 'bold' }}>Copy Code</button>
+        </div>
+        <div style={{ padding: '12px', maxHeight: '180px', overflowY: 'auto', textAlign: 'left' }}>
+          {activeTab === 'code' ? (
+            <pre style={{ margin: 0, fontSize: '10px', color: '#e2e8f0', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{codeContent}</code></pre>
+          ) : (
+            <pre style={{ margin: 0, fontSize: '10px', color: '#38bdf8', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{consoleOutput}</code></pre>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 8. Document Export & Downloader Card
+function DocumentExportCard({ text }) {
+  const cleanText = text.split('[Document:')[0].trim();
+  const block = text.split('[Document:')[1] || '';
+  const format = block.split(']')[0] || 'pdf';
+  const lines = block.split(']')[1] || '';
+  
+  const titleMatch = lines.match(/Title:\s*(.*)/i);
+  const sizeMatch = lines.match(/Size:\s*(.*)/i);
+  const pagesMatch = lines.match(/Pages:\s*(.*)/i);
+  const contentMatch = lines.match(/Content:\s*(.*)/i);
+
+  const title = titleMatch ? titleMatch[1].trim() : 'Document Export';
+  const size = sizeMatch ? sizeMatch[1].trim() : '120 KB';
+  const pages = pagesMatch ? pagesMatch[1].trim() : '3 Pages';
+  const content = contentMatch ? contentMatch[1].trim() : 'Study Reference';
+
+  const handleDownload = () => {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${title.replace(/\s+/g, '_')}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      <div className="glass-panel" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: format === 'pdf' ? '#ef4444' : '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '10px' }}>
+            {format.toUpperCase()}
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'white' }}>{title}</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{pages} • {size}</div>
+          </div>
+        </div>
+        <button type="button" onClick={handleDownload} style={{ background: 'var(--accent-purple)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '6px', fontSize: '9.5px', fontWeight: 'bold', cursor: 'pointer' }}>Download</button>
+      </div>
+    </div>
+  );
+}
+
+// 9. Project Explorer Card
+function ProjectExplorerCard({ text }) {
+  const cleanText = text.split('[Project]')[0].trim();
+  const items = text.split('[Project]')[1]?.split('\n').map(i => i.trim()).filter(i => i !== '') || [];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      <div className="glass-panel" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px', textAlign: 'left' }}>
+        <span style={{ fontSize: '8px', color: 'var(--accent-purple-light)', fontWeight: '800', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>📂 Project Directory Explorer</span>
+        <div style={{ fontFamily: 'monospace', fontSize: '9.5px', color: '#e2e8f0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {items.map((item, idx) => {
+            const parts = item.split('/');
+            const isFile = parts.length > 1;
+            return (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', paddingLeft: `${(parts.length - 1) * 8}px` }}>
+                <span>{isFile ? '📄' : '📁'}</span>
+                <span>{parts[parts.length - 1]}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 10. UI Wireframe Mockup Card
+function UiMockupCard({ text }) {
+  const cleanText = text.split('[UI]')[0].trim();
+  const block = text.split('[UI]')[1] || '';
+  const lines = block.split('\n').map(l => l.trim()).filter(l => l !== '');
+
+  const title = lines.find(l => l.includes('Title:'))?.replace('Title:', '').trim() || 'UI Wireframe';
+  const inputs = lines.find(l => l.includes('Inputs:'))?.replace('Inputs:', '').split(',').map(i => i.trim()) || [];
+  const buttons = lines.find(l => l.includes('Buttons:'))?.replace('Buttons:', '').split(',').map(b => b.trim()) || [];
+  const toggles = lines.find(l => l.includes('Toggles:'))?.replace('Toggles:', '').split(',').map(t => t.trim()) || [];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      <div className="glass-panel" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '16px', width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', marginBottom: '12px' }}>
+          <span style={{ fontSize: '8.5px', color: 'var(--accent-purple-light)', fontWeight: '800', textTransform: 'uppercase' }}>📱 Wireframe Dashboard Mockup</span>
+          <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 'bold' }}>{title}</span>
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'left' }}>
+          {inputs.map((inp, idx) => {
+            const [type, placeholder] = inp.split('|');
+            return (
+              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '8.5px', color: 'var(--text-muted)', textTransform: 'capitalize' }}>{type}</label>
+                <input type={type} placeholder={placeholder} disabled style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 10px', borderRadius: '6px', color: 'white', fontSize: '10px', width: '100%' }} />
+              </div>
+            );
+          })}
+          
+          {toggles.map((tog, idx) => (
+            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
+              <span style={{ fontSize: '10px', color: '#e2e8f0' }}>{tog}</span>
+              <div style={{ width: '28px', height: '16px', borderRadius: '8px', background: 'var(--accent-purple)', padding: '2px', cursor: 'pointer', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'white' }}></div>
+              </div>
+            </div>
+          ))}
+
+          <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+            {buttons.map((btn, idx) => {
+              const [name, styleType] = btn.split(' ');
+              const isPrimary = styleType === 'Primary';
+              return (
+                <button key={idx} type="button" style={{ 
+                  flex: 1, 
+                  background: isPrimary ? 'var(--accent-purple)' : 'rgba(255,255,255,0.06)', 
+                  border: isPrimary ? 'none' : '1px solid rgba(255,255,255,0.1)', 
+                  color: 'white', 
+                  padding: '6px', 
+                  borderRadius: '6px', 
+                  fontSize: '9.5px', 
+                  fontWeight: 'bold', 
+                  cursor: 'pointer' 
+                }}>
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 11. Creative Document Writer Card
+function DocumentEditorCard({ text }) {
+  const cleanText = text.split('[Editor]')[0].trim();
+  const editorText = text.split('[Editor]')[1] || '';
+
+  const wordCount = editorText.split(/\s+/).filter(w => w !== '').length;
+  const charCount = editorText.length;
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(editorText.trim());
+    alert('Document content copied!');
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      <div className="glass-panel" style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '14px', padding: '16px', textAlign: 'left' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '6px', marginBottom: '10px' }}>
+          <span style={{ fontSize: '8px', color: 'var(--accent-purple-light)', fontWeight: '800', textTransform: 'uppercase' }}>✍️ Creative Writer Editor</span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontSize: '8.5px', color: 'var(--text-muted)' }}>{wordCount} words • {readTime} min read</span>
+            <button type="button" onClick={handleCopy} style={{ background: 'none', border: 'none', color: 'var(--accent-purple-light)', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold' }}>Copy Text</button>
+          </div>
+        </div>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.9)', lineHeight: '1.6', fontFamily: 'Georgia, serif', whiteSpace: 'pre-wrap', maxHeight: '180px', overflowY: 'auto' }}>
+          {editorText.trim()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 12. Tree Data Schema Card
+function TreeSchemaCard({ text }) {
+  const cleanText = text.split('[Tree:')[0].trim();
+  const block = text.split('[Tree:')[1] || '';
+  const format = block.split(']')[0] || 'json';
+  const rawData = block.split(']')[1] || '';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(rawData.trim());
+    alert('Structured data copied!');
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+      {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
+      <div className="glass-panel" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <span style={{ fontSize: '8px', color: '#10b981', fontWeight: '800', textTransform: 'uppercase' }}>🌳 {format.toUpperCase()} Tree Validator</span>
+          <button type="button" onClick={handleCopy} style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', fontSize: '9px', fontWeight: 'bold' }}>Copy Data</button>
+        </div>
+        <div style={{ padding: '12px', textAlign: 'left', maxHeight: '160px', overflowY: 'auto' }}>
+          <pre style={{ margin: 0, fontSize: '9.5px', fontFamily: 'Courier New, monospace', color: '#34d399', whiteSpace: 'pre-wrap' }}>
+            <code>{rawData.trim()}</code>
+          </pre>
+        </div>
       </div>
     </div>
   );
