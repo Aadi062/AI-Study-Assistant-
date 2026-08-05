@@ -1219,7 +1219,6 @@ function ImageCard({ src, text }) {
 
 // 7. Code Console Runner Card
 function CodeConsoleCard({ text }) {
-  const [activeTab, setActiveTab] = useState('code');
   const cleanText = text.split('[Code:')[0].trim();
   const block = text.split('[Code:')[1] || '';
   const lang = block.split(']')[0] || 'javascript';
@@ -1235,19 +1234,22 @@ function CodeConsoleCard({ text }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
       {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
       <div className="glass-panel" style={{ background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+        {/* Source Code Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="button" onClick={() => setActiveTab('code')} style={{ background: activeTab === 'code' ? 'rgba(255,255,255,0.08)' : 'none', border: 'none', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '9.5px', cursor: 'pointer', fontWeight: 'bold' }}>Source ({lang})</button>
-            <button type="button" onClick={() => setActiveTab('console')} style={{ background: activeTab === 'console' ? 'rgba(255,255,255,0.08)' : 'none', border: 'none', color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '9.5px', cursor: 'pointer', fontWeight: 'bold' }}>Console Output</button>
-          </div>
+          <span style={{ fontSize: '9.5px', color: 'white', fontWeight: 'bold' }}>Source Code ({lang})</span>
           <button type="button" onClick={handleCopy} style={{ background: 'none', border: 'none', color: 'var(--accent-purple-light)', cursor: 'pointer', fontSize: '9.5px', fontWeight: 'bold' }}>Copy Code</button>
         </div>
-        <div style={{ padding: '12px', maxHeight: '180px', overflowY: 'auto', textAlign: 'left' }}>
-          {activeTab === 'code' ? (
-            <pre style={{ margin: 0, fontSize: '10px', color: '#e2e8f0', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{codeContent}</code></pre>
-          ) : (
-            <pre style={{ margin: 0, fontSize: '10px', color: '#38bdf8', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{consoleOutput}</code></pre>
-          )}
+        {/* Code Content */}
+        <div style={{ padding: '12px', maxHeight: '140px', overflowY: 'auto', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <pre style={{ margin: 0, fontSize: '10px', color: '#e2e8f0', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{codeContent}</code></pre>
+        </div>
+        {/* Console Header */}
+        <div style={{ display: 'flex', background: '#0f172a', padding: '4px 12px' }}>
+          <span style={{ fontSize: '8px', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>💻 Console Terminal Output</span>
+        </div>
+        {/* Console Content */}
+        <div style={{ padding: '10px 12px', background: '#020617', textAlign: 'left', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+          <pre style={{ margin: 0, fontSize: '10px', color: '#38bdf8', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{consoleOutput}</code></pre>
         </div>
       </div>
     </div>
