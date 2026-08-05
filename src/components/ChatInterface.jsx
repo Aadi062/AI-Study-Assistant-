@@ -1225,31 +1225,116 @@ function CodeConsoleCard({ text }) {
   const codeContent = block.split(']')[1]?.split('[Console]')[0]?.trim() || '';
   const consoleOutput = block.split('[Console]')[1]?.trim() || '';
 
+  // Setup dynamic defaults
+  const isLoop = codeContent.includes('10') || consoleOutput.includes('10');
+  const initialInput = isLoop ? '10' : (lang === 'sql' ? 'Basics' : (lang === 'html' ? 'Submit Successful' : ''));
+
+  const [userInput, setUserInput] = useState(initialInput);
+  const [displayedCode, setDisplayedCode] = useState(codeContent);
+  const [displayedOutput, setDisplayedOutput] = useState(consoleOutput);
+  const [isRunning, setIsRunning] = useState(false);
+  const [liveHtml, setLiveHtml] = useState(null);
+
+  // Sync state if text changes from props
+  useEffect(() => {
+    setDisplayedCode(codeContent);
+    setDisplayedOutput(consoleOutput);
+    if (lang === 'html' && !liveHtml) {
+      setLiveHtml(`<div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; text-align: center;"><h4 style="margin:0 0 8px 0; color:white;">HTML Preview</h4><button style="background:var(--accent-purple); border:none; color:white; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="alert('Submit Successful')">Submit</button></div>`);
+    }
+  }, [codeContent, consoleOutput, lang]);
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(codeContent);
+    navigator.clipboard.writeText(displayedCode);
     alert('Code copied to clipboard!');
+  };
+
+  const handleRun = () => {
+    setIsRunning(true);
+    setTimeout(() => {
+      setIsRunning(false);
+      if (isLoop) {
+        const n = parseInt(userInput) || 10;
+        const lines = [];
+        for (let i = 1; i <= n; i++) {
+          lines.push(i);
+        }
+        setDisplayedOutput(lines.join('\n'));
+
+        let updatedCode = codeContent;
+        if (lang === 'python') {
+          updatedCode = codeContent.replace('11', String(n + 1));
+        } else {
+          updatedCode = codeContent.replace('10', String(n));
+        }
+        setDisplayedCode(updatedCode);
+      } else if (lang === 'sql') {
+        const filter = userInput || 'Basics';
+        setDisplayedOutput(`Table Results:\nID | Name | Difficulty\n1 | ${filter} | High`);
+      } else if (lang === 'html') {
+        const alertText = userInput || 'Submit Successful';
+        setLiveHtml(`<div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; text-align: center;"><h4 style="margin:0 0 8px 0; color:white;">HTML Preview</h4><button style="background:var(--accent-purple); border:none; color:white; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="alert('${alertText}')">Submit</button></div>`);
+        setDisplayedOutput(`Rendered HTML layout successfully with alert: "${alertText}"`);
+      } else {
+        setDisplayedOutput(`Execution successful.\nInput arguments processed: "${userInput}"`);
+      }
+    }, 450);
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
       {cleanText && <p style={{ fontSize: '12px', margin: 0 }}>{cleanText}</p>}
       <div className="glass-panel" style={{ background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+        
         {/* Source Code Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '6px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <span style={{ fontSize: '9.5px', color: 'white', fontWeight: 'bold' }}>Source Code ({lang})</span>
           <button type="button" onClick={handleCopy} style={{ background: 'none', border: 'none', color: 'var(--accent-purple-light)', cursor: 'pointer', fontSize: '9.5px', fontWeight: 'bold' }}>Copy Code</button>
         </div>
+
         {/* Code Content */}
-        <div style={{ padding: '12px', maxHeight: '140px', overflowY: 'auto', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <pre style={{ margin: 0, fontSize: '10px', color: '#e2e8f0', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{codeContent}</code></pre>
+        <div style={{ padding: '12px', maxHeight: '120px', overflowY: 'auto', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <pre style={{ margin: 0, fontSize: '10px', color: '#e2e8f0', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{displayedCode}</code></pre>
         </div>
+
+        {/* Dynamic Execution Controller */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#1e293b', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, textAlign: 'left' }}>
+            <span style={{ fontSize: '8px', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>
+              {isLoop ? 'Loop Limit (N)' : (lang === 'sql' ? 'SQL Search Filter' : (lang === 'html' ? 'Button Alert Message' : 'Input Argument'))}
+            </span>
+            <input 
+              type={isLoop ? 'number' : 'text'} 
+              value={userInput} 
+              onChange={(e) => setUserInput(e.target.value)}
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: '10px', padding: '3px 6px', borderRadius: '4px', width: '100%', outline: 'none' }}
+            />
+          </div>
+          <button 
+            type="button" 
+            onClick={handleRun}
+            disabled={isRunning}
+            style={{ background: 'var(--accent-purple)', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '9.5px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '10px' }}
+          >
+            {isRunning ? 'Running...' : '▶ Run Code'}
+          </button>
+        </div>
+
+        {/* Live HTML Frame if HTML lang */}
+        {lang === 'html' && liveHtml && (
+          <div style={{ padding: '10px', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div dangerouslySetInnerHTML={{ __html: liveHtml }} />
+          </div>
+        )}
+
         {/* Console Header */}
         <div style={{ display: 'flex', background: '#0f172a', padding: '4px 12px' }}>
           <span style={{ fontSize: '8px', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>💻 Console Terminal Output</span>
         </div>
-        {/* Console Content */}
+
+        {/* Console Output Content */}
         <div style={{ padding: '10px 12px', background: '#020617', textAlign: 'left', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
-          <pre style={{ margin: 0, fontSize: '10px', color: '#38bdf8', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{consoleOutput}</code></pre>
+          <pre style={{ margin: 0, fontSize: '10px', color: '#38bdf8', fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }}><code>{displayedOutput}</code></pre>
         </div>
       </div>
     </div>
