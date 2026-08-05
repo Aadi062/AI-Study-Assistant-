@@ -816,8 +816,141 @@ function MermaidParser({ text }) {
     return <p style={{ fontSize: '12px', lineHeight: '1.5' }}>{text}</p>;
   }
 
+  const isFlowchart = code.toLowerCase().includes('flowchart');
+
+  if (isFlowchart) {
+    const nodes = {};
+    const edges = [];
+    const lines = code.split('\n').map(l => l.trim()).filter(l => l !== '' && !l.toLowerCase().startsWith('flowchart'));
+
+    lines.forEach(line => {
+      // 1. Match nodes like: start([START]) or input[Enter Car Details] or validate{Validate}
+      const nodeMatch = line.match(/^([a-zA-Z0-9_-]+)(?:\[\((.*?)\)\]|\[(.*?)]|\((.*?)\)|\{(.*?)\}|\(\((.*?)\)\))/);
+      if (nodeMatch) {
+        const id = nodeMatch[1];
+        const label = nodeMatch[2] || nodeMatch[3] || nodeMatch[4] || nodeMatch[5] || nodeMatch[6] || id;
+        nodes[id] = label.replace(/<br>/gi, ' ');
+      }
+      
+      // 2. Match connections like: validate -- No --> reenter or input --> validate
+      const edgeMatch = line.match(/^([a-zA-Z0-9_-]+)\s*(?:--\s*(.*?)\s*-->|-->)\s*([a-zA-Z0-9_-]+)/);
+      if (edgeMatch) {
+        const from = edgeMatch[1];
+        const label = edgeMatch[2] || '';
+        const to = edgeMatch[3];
+        edges.push({ from, to, label });
+        
+        // Ensure nodes contain these IDs if not declared explicitly
+        if (!nodes[from]) nodes[from] = from;
+        if (!nodes[to]) nodes[to] = to;
+      }
+    });
+
+    // BFS Hierarchy Layering
+    const rank = {};
+    const inDegree = {};
+    Object.keys(nodes).forEach(id => inDegree[id] = 0);
+    edges.forEach(e => {
+      if (inDegree[e.to] !== undefined) inDegree[e.to]++;
+    });
+
+    let roots = Object.keys(nodes).filter(id => inDegree[id] === 0);
+    if (roots.length === 0 && Object.keys(nodes).length > 0) {
+      roots = [Object.keys(nodes)[0]];
+    }
+
+    let queue = roots.map(id => ({ id, level: 0 }));
+    queue.forEach(item => {
+      if (rank[item.id] === undefined || item.level > rank[item.id]) {
+        rank[item.id] = item.level;
+      }
+      edges.filter(e => e.from === item.id).forEach(e => {
+        queue.push({ id: e.to, level: item.level + 1 });
+      });
+    });
+
+    const levels = {};
+    Object.keys(nodes).forEach(id => {
+      const lvl = rank[id] || 0;
+      if (!levels[lvl]) levels[lvl] = [];
+      levels[lvl].push(id);
+    });
+
+    const nodeCoords = {};
+    const maxLvl = Math.max(...Object.keys(levels).map(Number), 0);
+    const height = (maxLvl + 1) * 65 + 40;
+
+    Object.keys(levels).forEach(lvlStr => {
+      const lvl = Number(lvlStr);
+      const lvlNodes = levels[lvl];
+      const y = 30 + lvl * 65;
+      lvlNodes.forEach((id, idx) => {
+        const x = 160 + (idx - (lvlNodes.length - 1) / 2) * 110;
+        nodeCoords[id] = { x, y };
+      });
+    });
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+        {textClean && <p style={{ fontSize: '12px', lineHeight: '1.5', margin: 0 }}>{textClean}</p>}
+        <div className="glass-panel" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowX: 'auto', width: '100%' }}>
+          <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--accent-purple-light)', alignSelf: 'flex-start', marginBottom: '8px' }}>⚙️ Interactive Process Flowchart</span>
+          
+          <svg width="100%" height={height} viewBox={`0 0 320 ${height}`} style={{ overflow: 'visible', minWidth: '320px' }}>
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 2 L 8 5 L 0 8 z" fill="rgba(168, 85, 247, 0.7)" />
+              </marker>
+            </defs>
+
+            {edges.map((e, idx) => {
+              const startPos = nodeCoords[e.from];
+              const endPos = nodeCoords[e.to];
+              if (!startPos || !endPos) return null;
+              
+              const midY = startPos.y + (endPos.y - startPos.y) / 2;
+              const pathD = `M ${startPos.x} ${startPos.y + 15} Q ${startPos.x + (endPos.x - startPos.x)/4} ${midY}, ${endPos.x} ${endPos.y - 15}`;
+              
+              return (
+                <g key={idx}>
+                  <path d={pathD} fill="none" stroke="rgba(168, 85, 247, 0.4)" strokeWidth="1.5" markerEnd="url(#arrow)" strokeDasharray={e.label === 'No' || e.label === 'Invalid' ? '3 3' : 'none'} />
+                  {e.label && (
+                    <g transform={`translate(${(startPos.x + endPos.x)/2}, ${midY})`}>
+                      <rect x="-16" y="-7" width="32" height="12" rx="3" fill="#0f172a" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                      <text fill="var(--text-muted)" fontSize="7" textAnchor="middle" y="2" fontWeight="bold">{e.label}</text>
+                    </g>
+                  )}
+                </g>
+              );
+            })}
+
+            {Object.keys(nodes).map(id => {
+              const pos = nodeCoords[id];
+              if (!pos) return null;
+              const label = nodes[id];
+              const isDecision = label.length < 24 && (id.includes('check') || id.includes('validate') || id.includes('choice') || id.includes('condition'));
+              
+              return (
+                <g key={id} transform={`translate(${pos.x}, ${pos.y})`} style={{ cursor: 'pointer' }} onClick={() => alert(`Node details:\n${label}`)}>
+                  {isDecision ? (
+                    <polygon points="0,-18 36,0 0,18 -36,0" fill="#1e1b4b" stroke="var(--accent-purple)" strokeWidth="1.5" />
+                  ) : (
+                    <rect x="-45" y="-14" width="90" height="28" rx="8" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+                  )}
+                  <text fill="white" fontSize="7.5" fontWeight="bold" textAnchor="middle" y="2">
+                    {label.length > 20 ? label.substring(0, 18) + '..' : label}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback classic Mind Map renderer
   const lines = code.split('\n').filter(l => l.trim() !== '' && !l.includes('mindmap') && !l.includes('flowchart'));
-  
   let rootNode = 'Mind Map';
   const children = [];
 
@@ -846,7 +979,8 @@ function MermaidParser({ text }) {
           flexDirection: 'column', 
           alignItems: 'center', 
           gap: '12px',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          width: '100%'
         }}
       >
         <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--accent-purple-light)' }}>
