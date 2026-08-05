@@ -862,11 +862,22 @@ ${ddgData.Abstract}
       }
 
     } else if (detectedIntent === 'Diagram Generation') {
-      if (queryLower.includes('car')) {
-        assistantReply = `Here is a simple **Car Management System Flowchart**:\n\n\`\`\`mermaid\nflowchart TD\n    start([START]) --> input[Enter Car Details<br>ID, Name, Model, Brand]\n    input --> validate{Validate Information}\n    validate -- No --> reenter[Re-enter Details]\n    reenter --> input\n    validate -- Yes --> save[Save Record]\n    save --> display[Display Car Information]\n    display --> choice{Update / Delete Record?}\n    choice -- Yes --> modify[Modify / Delete Record]\n    choice -- No --> exit[Exit]\n    modify --> ending([END])\n    exit --> ending\n\`\`\``;
+      const topicLower = activeTopic.toLowerCase();
+      let mermaidCode = '';
+
+      if (topicLower.includes('car') || topicLower.includes('vehicle')) {
+        mermaidCode = `flowchart TD\n    start([START]) --> input[Enter Car Details<br>ID, Name, Model, Brand]\n    input --> validate{Validate Information}\n    validate -- No --> reenter[Re-enter Details]\n    reenter --> input\n    validate -- Yes --> save[Save Record]\n    save --> display[Display Car Information]\n    display --> choice{Update / Delete Record?}\n    choice -- Yes --> modify[Modify / Delete Record]\n    choice -- No --> exit[Exit]\n    modify --> ending([END])\n    exit --> ending`;
+      } else if (topicLower.includes('photosynthesis') || topicLower.includes('plant')) {
+        mermaidCode = `flowchart TD\n    start([START]) --> light[Sunlight Absorbed by Chlorophyll]\n    light --> water[Water H2O Split in Thylakoids]\n    water --> oxygen[Oxygen O2 Released as Byproduct]\n    oxygen --> atp[ATP & NADPH Generated]\n    atp --> calvin{Calvin Cycle in Stroma}\n    calvin --> carbon[Carbon Dioxide CO2 Fixed]\n    carbon --> glucose[Glucose C6H12O6 Produced]\n    glucose --> ending([END])`;
+      } else if (topicLower.includes('login') || topicLower.includes('auth') || topicLower.includes('sign')) {
+        mermaidCode = `flowchart TD\n    start([START]) --> input[Enter Username & Password]\n    input --> submit[Submit Auth Credentials]\n    submit --> check{Credentials Match?}\n    check -- Yes --> access[Grant Dashboard Access]\n    access --> ending([END])\n    check -- No --> error[Show Auth Error]\n    error --> input`;
+      } else if (topicLower.includes('loop') || topicLower.includes('repeat') || topicLower.includes('for')) {
+        mermaidCode = `flowchart TD\n    start([START]) --> init[Initialize Counter i = 1]\n    init --> condition{Is i <= N?}\n    condition -- Yes --> exec[Execute Loop Body]\n    exec --> incr[Increment i = i + 1]\n    incr --> condition\n    condition -- No --> ending([END])`;
       } else {
-        assistantReply = `Here is the Mermaid flowchart diagram representing **${activeTopic}**:\n\n\`\`\`mermaid\nflowchart TD\n    A[Start] --> B[Process ${activeTopic}] --> C[End]\n\`\`\``;
+        mermaidCode = `flowchart TD\n    start([START]) --> init[Initialize ${activeTopic}]\n    init --> process[Execute ${activeTopic} Pipeline]\n    process --> validate{Validate ${activeTopic} Output?}\n    validate -- Valid --> success[Complete ${activeTopic} Task]\n    success --> ending([END])\n    validate -- Invalid --> retry[Retry ${activeTopic} Operation]\n    retry --> process`;
       }
+
+      assistantReply = `Here is a custom **${activeTopic} Flowchart** diagram:\n\n\`\`\`mermaid\n${mermaidCode}\n\`\`\``;
     } else if (detectedIntent === 'Document Generation') {
       if (queryLower.includes('car') && queryLower.includes('pdf')) {
         assistantReply = `Here is the interactive **Car PDF System Wizard**. Complete the form steps to generate your custom car catalog.\n\n[CarPDF]`;
