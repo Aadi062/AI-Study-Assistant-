@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 // Serve the built React frontend in production
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // ----------------------------------------------------
 // API 1: Chat Endpoint (Supports Mock, Webhook, and Gemini RAG)
@@ -1263,7 +1263,7 @@ app.get('/api/curriculum', (req, res) => {
 // Catch-all: Serve React frontend for any non-API route
 // ----------------------------------------------------
 app.use((req, res, next) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
 });
 
 app.listen(PORT, () => {
